@@ -1,15 +1,13 @@
 import { Button } from "@/components/ui/button";
-import LandingPage from "./pages/landing/LandingPage";
+import HeroSection from "../../components/layout/hero-section";
 
-function App() {
+function LandingPage() {
 	return (
 		// <div className="flex min-h-svh flex-col items-center justify-center">
-		// 	<Button>Click me</Button>
-		// </div>
 		<div>
-			<LandingPage />
+			<HeroSection />
 		</div>
 	);
 }
 
-export default App;
+export default LandingPage;
