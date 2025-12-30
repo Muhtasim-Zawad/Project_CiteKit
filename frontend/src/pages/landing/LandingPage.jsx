@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import HeroSection from "../../components/layout/hero-section";
 import Features from "@/components/features-2";
+import TeamSection from "@/components/team";
 
 function LandingPage() {
 	return (
@@ -8,6 +9,7 @@ function LandingPage() {
 		<div>
 			<HeroSection />
 			<Features />
+			<TeamSection />
 		</div>
 	);
 }
