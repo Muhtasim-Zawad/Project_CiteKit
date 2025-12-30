@@ -18,7 +18,7 @@ const members = [
 
 export default function TeamSection() {
 	return (
-		<section className="py-12 md:py-24">
+		<section className="py-16 md:py-16">
 			<div className="mx-auto max-w-3xl px-8 lg:px-0">
 				<h2 className="mb-8 text-4xl font-bold md:mb-12 lg:text-5xl flex justify-center items-center">
 					Our team
