@@ -1,9 +1,5 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-/* 
-html {
-	scroll-behavior: smooth;
-} */
 
 @custom-variant dark (&:is(.dark *));
 
@@ -123,5 +119,14 @@ html {
 	}
 	body {
 		@apply bg-background text-foreground;
+	}
+	h1 {
+		@apply text-2xl font-bold;
+	}
+	h2 {
+		@apply text-xl font-bold;
+	}
+	h3 {
+		@apply text-lg font-bold;
 	}
 }
