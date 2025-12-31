@@ -1,5 +1,6 @@
 import React from "react";
 import { Logo } from "@/components/logo";
+import { Link } from "react-scroll";
 // If using react-router-dom, import { Link } from 'react-router-dom'
 // Otherwise, we use <a> tags below
 import { Menu, X } from "lucide-react";
@@ -7,11 +8,10 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
-	{ name: "Features", href: "#link" },
-	{ name: "Team", href: "#link" },
-	{ name: "FAQs", href: "#link" },
-	{ name: "Pricing", href: "#link" },
-	{ name: "About", href: "#link" },
+	{ name: "Features", to: "features" },
+	{ name: "Team", to: "team" },
+	{ name: "FAQs", to: "faqs" },
+	{ name: "Pricing", to: "pricing" },
 ];
 
 export const HeroHeader = () => {
@@ -62,14 +62,23 @@ export const HeroHeader = () => {
 						<div className="absolute inset-0 m-auto hidden size-fit lg:block">
 							<ul className="flex gap-8 text-sm">
 								{menuItems.map((item, index) => (
-									<li key={index}>
-										<a
-											href={item.href}
-											className="text-muted-foreground hover:text-accent-foreground block duration-150"
-										>
-											<span>{item.name}</span>
-										</a>
-									</li>
+									// <li key={index}>
+									// 	<a
+									// 		href={item.href}
+									// 		className="text-muted-foreground hover:text-accent-foreground block duration-150"
+									// 	>
+									// 		<span>{item.name}</span>
+									// 	</a>
+									// </li>
+									<Link
+										to={item.to}
+										smooth="easeInOutQuart"
+										duration={1500}
+										offset={-48}
+										className="cursor-pointer text-muted-foreground hover:text-accent-foreground block duration-150"
+									>
+										{item.name}
+									</Link>
 								))}
 							</ul>
 						</div>

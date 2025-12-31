@@ -2,14 +2,7 @@ import { Button } from "@/components/ui/button";
 import LandingPage from "./pages/landing/LandingPage";
 
 function App() {
-	return (
-		// <div className="flex min-h-svh flex-col items-center justify-center">
-		// 	<Button>Click me</Button>
-		// </div>
-		<div>
-			<LandingPage />
-		</div>
-	);
+	return <div>{/* <LandingPage />  */}</div>;
 }
 
 export default App;

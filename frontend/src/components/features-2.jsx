@@ -1,73 +1,76 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Settings2, Sparkles, Zap } from "lucide-react";
+import { Element } from "react-scroll";
 
 export default function Features() {
 	return (
-		<section className="py-16 md:py-16">
-			<div className="@container mx-auto max-w-5xl px-6">
-				<div className="text-center">
-					<h2 className="text-balance text-4xl font-semibold lg:text-5xl">
-						Built to cover your needs
-					</h2>
-					<p className="mt-4">
-						Libero sapiente aliquam quibusdam aspernatur, praesentium iusto
-						repellendus.
-					</p>
+		<Element name="features">
+			<section className="py-16 md:py-16">
+				<div className="@container mx-auto max-w-5xl px-6">
+					<div className="text-center">
+						<h2 className="text-balance text-4xl font-semibold lg:text-5xl">
+							Built to cover your needs
+						</h2>
+						<p className="mt-4">
+							Libero sapiente aliquam quibusdam aspernatur, praesentium iusto
+							repellendus.
+						</p>
+					</div>
+					<div className="@min-4xl:max-w-full @min-4xl:grid-cols-3 mx-auto mt-8 grid max-w-sm gap-6 [--color-background:var(--color-muted)] [--color-card:var(--color-muted)] *:text-center md:mt-16 dark:[--color-muted:var(--color-zinc-900)]">
+						<Card className="group border-0 shadow-none">
+							<CardHeader className="pb-3">
+								<CardDecorator>
+									<Zap className="size-6" aria-hidden />
+								</CardDecorator>
+
+								<h3 className="mt-6 font-medium">Customizable</h3>
+							</CardHeader>
+
+							<CardContent>
+								<p className="text-sm">
+									Extensive customization options, allowing you to tailor every
+									aspect to meet your specific needs.
+								</p>
+							</CardContent>
+						</Card>
+
+						<Card className="group border-0 shadow-none">
+							<CardHeader className="pb-3">
+								<CardDecorator>
+									<Settings2 className="size-6" aria-hidden />
+								</CardDecorator>
+
+								<h3 className="mt-6 font-medium">You have full control</h3>
+							</CardHeader>
+
+							<CardContent>
+								<p className="mt-3 text-sm">
+									From design elements to functionality, you have complete
+									control to create a unique and personalized experience.
+								</p>
+							</CardContent>
+						</Card>
+
+						<Card className="group border-0 shadow-none">
+							<CardHeader className="pb-3">
+								<CardDecorator>
+									<Sparkles className="size-6" aria-hidden />
+								</CardDecorator>
+
+								<h3 className="mt-6 font-medium">Powered By AI</h3>
+							</CardHeader>
+
+							<CardContent>
+								<p className="mt-3 text-sm">
+									Elements to functionality, you have complete control to create
+									a unique experience.
+								</p>
+							</CardContent>
+						</Card>
+					</div>
 				</div>
-				<div className="@min-4xl:max-w-full @min-4xl:grid-cols-3 mx-auto mt-8 grid max-w-sm gap-6 [--color-background:var(--color-muted)] [--color-card:var(--color-muted)] *:text-center md:mt-16 dark:[--color-muted:var(--color-zinc-900)]">
-					<Card className="group border-0 shadow-none">
-						<CardHeader className="pb-3">
-							<CardDecorator>
-								<Zap className="size-6" aria-hidden />
-							</CardDecorator>
-
-							<h3 className="mt-6 font-medium">Customizable</h3>
-						</CardHeader>
-
-						<CardContent>
-							<p className="text-sm">
-								Extensive customization options, allowing you to tailor every
-								aspect to meet your specific needs.
-							</p>
-						</CardContent>
-					</Card>
-
-					<Card className="group border-0 shadow-none">
-						<CardHeader className="pb-3">
-							<CardDecorator>
-								<Settings2 className="size-6" aria-hidden />
-							</CardDecorator>
-
-							<h3 className="mt-6 font-medium">You have full control</h3>
-						</CardHeader>
-
-						<CardContent>
-							<p className="mt-3 text-sm">
-								From design elements to functionality, you have complete control
-								to create a unique and personalized experience.
-							</p>
-						</CardContent>
-					</Card>
-
-					<Card className="group border-0 shadow-none">
-						<CardHeader className="pb-3">
-							<CardDecorator>
-								<Sparkles className="size-6" aria-hidden />
-							</CardDecorator>
-
-							<h3 className="mt-6 font-medium">Powered By AI</h3>
-						</CardHeader>
-
-						<CardContent>
-							<p className="mt-3 text-sm">
-								Elements to functionality, you have complete control to create a
-								unique experience.
-							</p>
-						</CardContent>
-					</Card>
-				</div>
-			</div>
-		</section>
+			</section>
+		</Element>
 	);
 }
 

@@ -5,6 +5,7 @@ import TeamSection from "@/components/team";
 import FAQsTwo from "@/components/faqs-2";
 import Pricing from "@/components/pricing";
 import CallToAction from "@/components/call-to-action";
+import FooterSection from "@/components/footer";
 
 function LandingPage() {
 	return (
@@ -16,6 +17,7 @@ function LandingPage() {
 			<FAQsTwo />
 			<Pricing />
 			<CallToAction />
+			<FooterSection />
 		</div>
 	);
 }
