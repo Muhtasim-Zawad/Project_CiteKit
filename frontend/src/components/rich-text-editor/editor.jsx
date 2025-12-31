@@ -29,7 +29,7 @@ export default function Editor() {
 		content: "<p>Hello World!</p>",
 		editorProps: {
 			attributes: {
-				class: "min-h-[156px] border rounded-md bg-slate-50 py-2 px-3",
+				class: "min-h-[156px] min-h-0 border rounded-md bg-slate-50 py-2 px-3",
 			},
 		},
 	});

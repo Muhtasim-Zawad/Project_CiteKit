@@ -9,10 +9,7 @@ function App() {
 		<div>
 			{/* <LandingPage />  */}
 			{/* <Dashboard /> */}
-			{/* <Workstation /> */}
-			<div className="max-2-3xl mx-auto py-8">
-				<Editor />
-			</div>
+			<Workstation />
 		</div>
 	);
 }
