@@ -1,3 +1,5 @@
+import { Routes, Route } from "react-router-dom";
+
 import { Button } from "@/components/ui/button";
 import LandingPage from "./pages/landing/LandingPage";
 import Dashboard from "./pages/workspace/Dashboard";
@@ -6,11 +8,13 @@ import Editor from "./components/rich-text-editor/editor";
 
 function App() {
 	return (
-		<div>
-			{/* <LandingPage />  */}
-			{/* <Dashboard /> */}
-			<Workstation />
-		</div>
+		<Routes>
+			<Route path="/" element={<LandingPage />} />
+			<Route path="/dashboard" element={<Dashboard />} />
+			{/* <Route path="/workspace/:projectId" element={<Workstation />} /> */}
+
+			<Route path="/workspace" element={<Workstation />} />
+		</Routes>
 	);
 }
 

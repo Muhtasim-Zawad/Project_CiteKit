@@ -1,4 +1,5 @@
 import React from "react";
+import { Link as RouterLink } from "react-router-dom";
 import { Logo } from "@/components/logo";
 import { Link } from "react-scroll";
 // If using react-router-dom, import { Link } from 'react-router-dom'
@@ -41,13 +42,20 @@ export const HeroHeader = () => {
 				>
 					<div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
 						<div className="flex w-full justify-between lg:w-auto">
-							<a
+							{/* <a
 								href="/"
 								aria-label="home"
 								className="flex items-center space-x-2"
 							>
 								<Logo />
-							</a>
+							</a> */}
+							<RouterLink
+								to="/"
+								aria-label="home"
+								className="flex items-center space-x-2"
+							>
+								<Logo />
+							</RouterLink>
 
 							<button
 								onClick={() => setMenuState(!menuState)}
@@ -105,21 +113,23 @@ export const HeroHeader = () => {
 									size="sm"
 									className={cn(isScrolled && "lg:hidden")}
 								>
-									<a href="#">Login</a>
+									<RouterLink to="/dashboard">Login</RouterLink>
 								</Button>
 								<Button
 									asChild
 									size="sm"
 									className={cn(isScrolled && "lg:hidden")}
 								>
-									<a href="#">Sign Up</a>
+									<RouterLink to="/dashboard">Sign Up</RouterLink>
 								</Button>
 								<Button
 									asChild
 									size="sm"
+									// onClick={() => navigate("/dashboard")}
 									className={cn(isScrolled ? "lg:inline-flex" : "hidden")}
 								>
-									<a href="#">Get Started</a>
+									{/* <a href="#">Get Started</a> */}
+									<RouterLink to="/dashboard">Get Started</RouterLink>
 								</Button>
 							</div>
 						</div>
