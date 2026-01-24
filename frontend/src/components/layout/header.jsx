@@ -113,14 +113,14 @@ export const HeroHeader = () => {
 									size="sm"
 									className={cn(isScrolled && "lg:hidden")}
 								>
-									<RouterLink to="/dashboard">Login</RouterLink>
+									<RouterLink to="/auth">Login</RouterLink>
 								</Button>
 								<Button
 									asChild
 									size="sm"
 									className={cn(isScrolled && "lg:hidden")}
 								>
-									<RouterLink to="/dashboard">Sign Up</RouterLink>
+									<RouterLink to="/auth">Sign Up</RouterLink>
 								</Button>
 								<Button
 									asChild
