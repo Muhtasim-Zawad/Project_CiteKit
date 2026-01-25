@@ -3,6 +3,7 @@ import { DataTable } from "@/components/data-table";
 import { SectionCards } from "@/components/section-cards";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import ChatInput from "@/components/ai/prompt-input";
 
 // import { Group, Panel, Separator } from "react-resizable-panels";
 import { Group, Panel, Separator } from "react-resizable-panels";
@@ -25,13 +26,14 @@ export default function Workstation() {
 
 				<div className="flex-1 overflow-hidden">
 					<Group direction="horizontal" className="flex-1 h-full">
-						<Panel defaultSize={70} minSize={20}>
+						{/* <Panel defaultSize={70} minSize={20}>
 							<div className="h-full min-h-0 p-4">
 								<Editor />
 							</div>
-						</Panel>
+						</Panel> */}
 
-						<Separator className="group w-1 cursor-col-resize bg-border">
+						<ChatInput />
+						{/* <Separator className="group w-1 cursor-col-resize bg-border">
 							<div className="mx-auto h-full w-0.5 bg-muted-foreground/40 group-hover:bg-primary transition-colors" />
 						</Separator>
 
@@ -39,7 +41,7 @@ export default function Workstation() {
 							<div className="h-full p-4 min-h-0">
 								<Editor />
 							</div>
-						</Panel>
+						</Panel> */}
 					</Group>
 				</div>
 			</SidebarInset>
