@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CiteKit Auth Test</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        h2 { color: #555; margin-top: 0; }
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        input { width: 100%; }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover { background: #45a049; }
+        button.secondary { background: #2196F3; }
+        button.secondary:hover { background: #1976D2; }
+        button.danger { background: #f44336; }
+        button.danger:hover { background: #d32f2f; }
+        .response {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { border-left: 4px solid #4CAF50; }
+        .error { border-left: 4px solid #f44336; }
+        .hidden { display: none; }
+        .profile-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 10px 0;
+        }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .token-display {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            word-break: break-all;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 CiteKit Authentication Test</h1>
+
+    <!-- Status -->
+    <div class="card">
+        <h2>Status</h2>
+        <div id="status">Not logged in</div>
+        <div id="token-info" class="token-display hidden">
+            <strong>Access Token:</strong> <span id="access-token-display"></span>
+        </div>
+    </div>
+
+    <!-- Signup -->
+    <div class="card" id="signup-section">
+        <h2>📝 Sign Up</h2>
+        <form id="signup-form">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="signup-email" required placeholder="user@example.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="signup-password" required placeholder="Min 6 characters">
+            </div>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="signup-name" required placeholder="John Doe">
+            </div>
+            <div class="form-group">
+                <label>Age</label>
+                <input type="number" id="signup-age" required min="1" max="150" placeholder="25">
+            </div>
+            <div class="form-group">
+                <label>Profile Photo (Optional)</label>
+                <input type="file" id="signup-photo" accept="image/*">
+            </div>
+            <button type="submit">Sign Up</button>
+        </form>
+        <div id="signup-response" class="response hidden"></div>
+    </div>
+
+    <!-- Login -->
+    <div class="card" id="login-section">
+        <h2>🔑 Login</h2>
+        <form id="login-form">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="login-email" required placeholder="user@example.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="login-password" required placeholder="Password">
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        <div id="login-response" class="response hidden"></div>
+    </div>
+
+    <!-- Profile (shown when logged in) -->
+    <div class="card hidden" id="profile-section">
+        <h2>👤 My Profile</h2>
+        <div id="profile-display">
+            <img id="profile-img" class="profile-photo hidden" src="" alt="Profile Photo">
+            <p><strong>Name:</strong> <span id="profile-name"></span></p>
+            <p><strong>Email:</strong> <span id="profile-email"></span></p>
+            <p><strong>Age:</strong> <span id="profile-age"></span></p>
+        </div>
+        <button class="secondary" onclick="getProfile()">Refresh Profile</button>
+        <div id="profile-response" class="response hidden"></div>
+    </div>
+
+    <!-- Update Profile -->
+    <div class="card hidden" id="update-section">
+        <h2>✏️ Update Profile</h2>
+        <form id="update-form">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="update-name" placeholder="New name">
+            </div>
+            <div class="form-group">
+                <label>Age</label>
+                <input type="number" id="update-age" min="1" max="150" placeholder="New age">
+            </div>
+            <button type="submit" class="secondary">Update Profile</button>
+        </form>
+        <div id="update-response" class="response hidden"></div>
+    </div>
+
+    <!-- Upload Photo -->
+    <div class="card hidden" id="photo-section">
+        <h2>📷 Upload Profile Photo</h2>
+        <form id="photo-form">
+            <div class="form-group">
+                <label>Select Photo</label>
+                <input type="file" id="photo-file" accept="image/*" required>
+            </div>
+            <button type="submit" class="secondary">Upload Photo</button>
+        </form>
+        <div id="photo-response" class="response hidden"></div>
+    </div>
+
+    <!-- Logout -->
+    <div class="card hidden" id="logout-section">
+        <button class="danger" onclick="logout()">🚪 Logout</button>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        let accessToken = localStorage.getItem('accessToken');
+        let refreshToken = localStorage.getItem('refreshToken');
+
+        // Check if already logged in
+        if (accessToken) {
+            showLoggedInState();
+            getProfile();
+        }
+
+        // Signup
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const responseDiv = document.getElementById('signup-response');
+
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const name = document.getElementById('signup-name').value;
+            const age = parseInt(document.getElementById('signup-age').value);
+            const photoFile = document.getElementById('signup-photo').files[0];
+
+            try {
+                // First signup without photo
+                const signupResponse = await fetch(`${API_URL}/auth/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, name, age })
+                });
+
+                const data = await signupResponse.json();
+
+                if (signupResponse.ok) {
+                    // Check if we got valid tokens (email confirmation might be required)
+                    if (data.access_token && data.access_token !== "") {
+                        accessToken = data.access_token;
+                        refreshToken = data.refresh_token;
+                        localStorage.setItem('accessToken', accessToken);
+                        localStorage.setItem('refreshToken', refreshToken);
+
+                        // If photo was selected, upload it
+                        if (photoFile) {
+                            await uploadPhoto(photoFile);
+                        }
+
+                        showResponse(responseDiv, data, true);
+                        showLoggedInState();
+                        getProfile();
+                    } else {
+                        // Email confirmation required
+                        showResponse(responseDiv, {
+                            message: "Signup successful! Please check your email to confirm your account, then login.",
+                            user: data.user
+                        }, true);
+                    }
+                } else {
+                    showResponse(responseDiv, data, false);
+                }
+            } catch (error) {
+                showResponse(responseDiv, { error: error.message }, false);
+            }
+        });
+
+        // Login
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const responseDiv = document.getElementById('login-response');
+
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    accessToken = data.access_token;
+                    refreshToken = data.refresh_token;
+                    localStorage.setItem('accessToken', accessToken);
+                    localStorage.setItem('refreshToken', refreshToken);
+                    showResponse(responseDiv, data, true);
+                    showLoggedInState();
+                    getProfile();
+                } else {
+                    showResponse(responseDiv, data, false);
+                }
+            } catch (error) {
+                showResponse(responseDiv, { error: error.message }, false);
+            }
+        });
+
+        // Update Profile
+        document.getElementById('update-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const responseDiv = document.getElementById('update-response');
+
+            const name = document.getElementById('update-name').value;
+            const age = document.getElementById('update-age').value;
+
+            const updateData = {};
+            if (name) updateData.name = name;
+            if (age) updateData.age = parseInt(age);
+
+            if (Object.keys(updateData).length === 0) {
+                showResponse(responseDiv, { error: 'Please fill at least one field' }, false);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/users/me`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                const data = await response.json();
+                showResponse(responseDiv, data, response.ok);
+                if (response.ok) getProfile();
+            } catch (error) {
+                showResponse(responseDiv, { error: error.message }, false);
+            }
+        });
+
+        // Upload Photo Form
+        document.getElementById('photo-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const file = document.getElementById('photo-file').files[0];
+            if (file) {
+                await uploadPhoto(file);
+            }
+        });
+
+        async function uploadPhoto(file) {
+            const responseDiv = document.getElementById('photo-response');
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`${API_URL}/users/me/photo`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+                showResponse(responseDiv, data, response.ok);
+                if (response.ok) getProfile();
+                return data;
+            } catch (error) {
+                showResponse(responseDiv, { error: error.message }, false);
+            }
+        }
+
+        async function getProfile() {
+            const responseDiv = document.getElementById('profile-response');
+
+            try {
+                const response = await fetch(`${API_URL}/users/me`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('profile-name').textContent = data.name;
+                    document.getElementById('profile-email').textContent = data.email;
+                    document.getElementById('profile-age').textContent = data.age;
+
+                    const profileImg = document.getElementById('profile-img');
+                    if (data.photo_url) {
+                        profileImg.src = data.photo_url;
+                        profileImg.classList.remove('hidden');
+                    } else {
+                        profileImg.classList.add('hidden');
+                    }
+
+                    showResponse(responseDiv, data, true);
+                } else {
+                    showResponse(responseDiv, data, false);
+                }
+            } catch (error) {
+                showResponse(responseDiv, { error: error.message }, false);
+            }
+        }
+
+        function logout() {
+            accessToken = null;
+            refreshToken = null;
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            showLoggedOutState();
+            document.getElementById('status').textContent = 'Logged out';
+        }
+
+        function showLoggedInState() {
+            document.getElementById('status').innerHTML = '✅ <strong>Logged in</strong>';
+            document.getElementById('token-info').classList.remove('hidden');
+            document.getElementById('access-token-display').textContent = accessToken.substring(0, 50) + '...';
+
+            document.getElementById('signup-section').classList.add('hidden');
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('profile-section').classList.remove('hidden');
+            document.getElementById('update-section').classList.remove('hidden');
+            document.getElementById('photo-section').classList.remove('hidden');
+            document.getElementById('logout-section').classList.remove('hidden');
+        }
+
+        function showLoggedOutState() {
+            document.getElementById('status').textContent = 'Not logged in';
+            document.getElementById('token-info').classList.add('hidden');
+
+            document.getElementById('signup-section').classList.remove('hidden');
+            document.getElementById('login-section').classList.remove('hidden');
+            document.getElementById('profile-section').classList.add('hidden');
+            document.getElementById('update-section').classList.add('hidden');
+            document.getElementById('photo-section').classList.add('hidden');
+            document.getElementById('logout-section').classList.add('hidden');
+        }
+
+        function showResponse(element, data, success) {
+            element.classList.remove('hidden', 'success', 'error');
+            element.classList.add(success ? 'success' : 'error');
+            element.textContent = JSON.stringify(data, null, 2);
+        }
+    </script>
+</body>
+</html>
