@@ -1,4 +1,4 @@
-import { LogoIcon } from "@/components/logo";
+import { IconInnerShadowTop } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +25,7 @@ export default function LoginPage() {
 				<div className="bg-card -m-px rounded-[calc(var(--radius)+.125rem)] border p-8 pb-6">
 					<div className="text-center">
 						<a href="/" aria-label="go home" className="mx-auto block w-fit">
-							<LogoIcon />
+							<IconInnerShadowTop />
 						</a>
 						<h1 className="mb-1 mt-4 text-xl font-semibold">
 							Sign In to CiteKit
@@ -33,12 +33,18 @@ export default function LoginPage() {
 						<p className="text-sm">Welcome back! Sign in to continue</p>
 					</div>
 
-					<div className="mt-6 space-y-6">
+					<div className="mt-6 space-y-6 ">
 						<div className="space-y-2">
 							<Label htmlFor="email" className="block text-sm">
 								Email
 							</Label>
-							<Input type="email" required name="email" id="email" />
+							<Input
+								type="email"
+								required
+								name="email"
+								id="email"
+								className="shadow-sm"
+							/>
 						</div>
 
 						<div className="space-y-0.5">
@@ -60,7 +66,7 @@ export default function LoginPage() {
 								required
 								name="pwd"
 								id="pwd"
-								className="input sz-md variant-mixed"
+								className="input sz-md variant-mixed shadow-sm"
 							/>
 						</div>
 						<Button type="submit" className="w-full">
@@ -76,7 +82,7 @@ export default function LoginPage() {
 						<hr className="border-dashed" />
 					</div>
 
-					<div className="grid grid-cols-2 gap-3">
+					<div className="grid grid-cols-1 gap-3 shadow-md">
 						<Button type="button" variant="outline">
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
@@ -103,7 +109,7 @@ export default function LoginPage() {
 							</svg>
 							<span>Google</span>
 						</Button>
-						<Button type="button" variant="outline">
+						{/* <Button type="button" variant="outline">
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
 								width="1em"
@@ -122,7 +128,7 @@ export default function LoginPage() {
 								></path>
 							</svg>
 							<span>Microsoft</span>
-						</Button>
+						</Button> */}
 					</div>
 				</div>
 

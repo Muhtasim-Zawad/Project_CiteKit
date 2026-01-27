@@ -1,10 +1,8 @@
 import { Routes, Route } from "react-router-dom";
 
-import { Button } from "@/components/ui/button";
 import LandingPage from "./pages/landing/LandingPage";
 import Dashboard from "./pages/workspace/Dashboard";
 import Workstation from "./pages/workspace/Workstation";
-import Editor from "./components/rich-text-editor/editor";
 import LoginPage from "./components/login";
 
 function App() {

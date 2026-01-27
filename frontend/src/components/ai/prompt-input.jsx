@@ -1,284 +1,160 @@
 // import {
-// 	Attachment,
-// 	AttachmentPreview,
-// 	AttachmentRemove,
-// 	Attachments,
-// } from "@/components/ai-elements/attachments";
+// 	Conversation,
+// 	ConversationContent,
+// 	ConversationEmptyState,
+// 	ConversationScrollButton,
+// } from "@/components/ai-elements/conversation";
 // import {
-// 	ModelSelector,
-// 	ModelSelectorContent,
-// 	ModelSelectorEmpty,
-// 	ModelSelectorGroup,
-// 	ModelSelectorInput,
-// 	ModelSelectorItem,
-// 	ModelSelectorList,
-// 	ModelSelectorLogo,
-// 	ModelSelectorLogoGroup,
-// 	ModelSelectorName,
-// 	ModelSelectorTrigger,
-// } from "@/components/ai-elements/model-selector";
+// 	Message,
+// 	MessageContent,
+// 	MessageResponse,
+// } from "@/components/ai-elements/message";
 // import {
 // 	PromptInput,
-// 	PromptInputActionAddAttachments,
-// 	PromptInputActionMenu,
-// 	PromptInputActionMenuContent,
-// 	PromptInputActionMenuTrigger,
-// 	PromptInputBody,
-// 	PromptInputButton,
-// 	PromptInputFooter,
-// 	PromptInputProvider,
-// 	PromptInputSubmit,
 // 	PromptInputTextarea,
-// 	PromptInputTools,
-// 	usePromptInputAttachments,
-// 	usePromptInputController,
+// 	PromptInputSubmit,
 // } from "@/components/ai-elements/prompt-input";
-// import { Button } from "@/components/ui/button";
-// import { ButtonGroup } from "@/components/ui/button-group";
-// import { CheckIcon, GlobeIcon } from "lucide-react";
+// import { MessageSquare } from "lucide-react";
 // import { useState } from "react";
+// import { useChat } from "@ai-sdk/react";
+// const ConversationDemo = () => {
+// 	const [input, setInput] = useState("");
+// 	const { messages, append, sendMessage, status } = useChat();
 
-// const models = [
-// 	{
-// 		id: "gpt-4o",
-// 		name: "GPT-4o",
-// 		chef: "OpenAI",
-// 		chefSlug: "openai",
-// 		providers: ["openai", "azure"],
-// 	},
-// 	{
-// 		id: "gpt-4o-mini",
-// 		name: "GPT-4o Mini",
-// 		chef: "OpenAI",
-// 		chefSlug: "openai",
-// 		providers: ["openai", "azure"],
-// 	},
-// 	{
-// 		id: "claude-opus-4-20250514",
-// 		name: "Claude 4 Opus",
-// 		chef: "Anthropic",
-// 		chefSlug: "anthropic",
-// 		providers: ["anthropic", "azure", "google", "amazon-bedrock"],
-// 	},
-// 	{
-// 		id: "claude-sonnet-4-20250514",
-// 		name: "Claude 4 Sonnet",
-// 		chef: "Anthropic",
-// 		chefSlug: "anthropic",
-// 		providers: ["anthropic", "azure", "google", "amazon-bedrock"],
-// 	},
-// 	{
-// 		id: "gemini-2.0-flash-exp",
-// 		name: "Gemini 2.0 Flash",
-// 		chef: "Google",
-// 		chefSlug: "google",
-// 		providers: ["google"],
-// 	},
-// ];
+// 	// have to remove
+// 	// 1. Destructure 'append' from the hook
 
-// const SUBMITTING_TIMEOUT = 200;
-// const STREAMING_TIMEOUT = 2000;
+// 	const handleSubmit = (e) => {
+// 		// Check if e exists (some custom components don't pass it)
+// 		if (e?.preventDefault) e.preventDefault();
 
-// const PromptInputAttachmentsDisplay = () => {
-// 	const attachments = usePromptInputAttachments();
+// 		if (!input.trim()) return;
 
-// 	if (attachments.files.length === 0) {
-// 		return null;
-// 	}
+// 		const userText = input;
+// 		setInput("");
 
-// 	return (
-// 		<Attachments variant="inline">
-// 			{attachments.files.map((attachment) => (
-// 				<Attachment
-// 					data={attachment}
-// 					key={attachment.id}
-// 					onRemove={() => attachments.remove(attachment.id)}
-// 				>
-// 					<AttachmentPreview />
-// 					<AttachmentRemove />
-// 				</Attachment>
-// 			))}
-// 		</Attachments>
-// 	);
-// };
-
-// const HeaderControls = () => {
-// 	const controller = usePromptInputController();
-
-// 	return (
-// 		<header className="mt-8 flex items-center justify-between">
-// 			<p className="text-sm">
-// 				Header Controls via{" "}
-// 				<code className="rounded-md bg-muted p-1 font-bold">
-// 					PromptInputProvider
-// 				</code>
-// 			</p>
-// 			<ButtonGroup>
-// 				<Button
-// 					onClick={() => {
-// 						controller.textInput.clear();
-// 					}}
-// 					size="sm"
-// 					type="button"
-// 					variant="outline"
-// 				>
-// 					Clear input
-// 				</Button>
-// 				<Button
-// 					onClick={() => {
-// 						controller.textInput.setInput("Inserted via PromptInputProvider");
-// 					}}
-// 					size="sm"
-// 					type="button"
-// 					variant="outline"
-// 				>
-// 					Set input
-// 				</Button>
-
-// 				<Button
-// 					onClick={() => {
-// 						controller.attachments.clear();
-// 					}}
-// 					size="sm"
-// 					type="button"
-// 					variant="outline"
-// 				>
-// 					Clear attachments
-// 				</Button>
-// 			</ButtonGroup>
-// 		</header>
-// 	);
-// };
-
-// const ChatInput = () => {
-// 	const [model, setModel] = useState(models[0].id);
-// 	const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
-// 	// const [status, setStatus] =		(useState < "submitted") | "streaming" | "ready" | ("error" > "ready");
-// 	// const [status, setStatus] = useState("ready");
-// 	const STATUS = {
-// 		SUBMITTED: "submitted",
-// 		STREAMING: "streaming",
-// 		READY: "ready",
-// 		ERROR: "error",
-// 	};
-
-// 	const [status, setStatus] = useState(STATUS.READY);
-
-// 	const selectedModelData = models.find((m) => m.id === model);
-
-// 	const handleSubmit = (message) => {
-// 		const hasText = Boolean(message.text);
-// 		const hasAttachments = Boolean(message.files?.length);
-
-// 		if (!(hasText || hasAttachments)) {
-// 			return;
-// 		}
-
-// 		setStatus("submitted");
-
-// 		// eslint-disable-next-line no-console
-// 		console.log("Submitting message:", message);
+// 		// 2. This now points to the same state the UI is using!
+// 		append({
+// 			id: Date.now().toString(),
+// 			role: "user",
+// 			content: userText,
+// 			parts: [{ type: "text", text: userText }],
+// 		});
 
 // 		setTimeout(() => {
-// 			setStatus("streaming");
-// 		}, SUBMITTING_TIMEOUT);
-
-// 		setTimeout(() => {
-// 			setStatus("ready");
-// 		}, STREAMING_TIMEOUT);
+// 			append({
+// 				id: (Date.now() + 1).toString(),
+// 				role: "assistant",
+// 				content: `Mock reply to: ${userText}`,
+// 				parts: [
+// 					{
+// 						type: "text",
+// 						text: `You said: "${userText}". This is a mock response!`,
+// 					},
+// 				],
+// 			});
+// 		}, 600);
 // 	};
 
+// 	// const handleSubmit = (e) => {
+// 	// 	e.preventDefault();
+// 	// 	// if (input.trim()) {
+// 	// 	// 	sendMessage({ text: input });
+// 	// 	// 	setInput("");
+// 	// 	// }
+
+// 	// 	if (!input.trim()) return;
+
+// 	// 	// 1. Add the user message to the UI
+// 	// 	const userMessage = { role: "user", content: input };
+
+// 	// 	// 2. Clear input
+// 	// 	setInput("");
+
+// 	// 	// 3. Manually append user message and trigger a mock response
+// 	// 	// We use append() to simulate the SDK's internal state management
+// 	// 	append(userMessage);
+
+// 	// 	// 4. Simulate a delay then "reply"
+// 	// 	setTimeout(() => {
+// 	// 		append({
+// 	// 			role: "assistant",
+// 	// 			content: `You said: "${input}". This is a mock response!`,
+// 	// 			// Ensure 'parts' is included since your UI maps over message.parts
+// 	// 			parts: [
+// 	// 				{
+// 	// 					type: "text",
+// 	// 					text: `You said: "${input}". This is a mock response!`,
+// 	// 				},
+// 	// 			],
+// 	// 		});
+// 	// 	}, 0);
+// 	// };
 // 	return (
-// 		<div className="size-full p-4 flex justify-center items-center">
-// 			<PromptInputProvider>
-// 				<PromptInput globalDrop multiple onSubmit={handleSubmit}>
-// 					<PromptInputAttachmentsDisplay />
-// 					<PromptInputBody>
-// 						<PromptInputTextarea />
-// 					</PromptInputBody>
-// 					<PromptInputFooter>
-// 						<PromptInputTools>
-// 							<PromptInputActionMenu>
-// 								<PromptInputActionMenuTrigger />
-// 								<PromptInputActionMenuContent>
-// 									<PromptInputActionAddAttachments />
-// 								</PromptInputActionMenuContent>
-// 							</PromptInputActionMenu>
-// 							<PromptInputButton>
-// 								<GlobeIcon size={16} />
-// 								<span>Search</span>
-// 							</PromptInputButton>
-// 							<ModelSelector
-// 								onOpenChange={setModelSelectorOpen}
-// 								open={modelSelectorOpen}
-// 							>
-// 								<ModelSelectorTrigger asChild>
-// 									<PromptInputButton>
-// 										{selectedModelData?.chefSlug && (
-// 											<ModelSelectorLogo
-// 												provider={selectedModelData.chefSlug}
-// 											/>
-// 										)}
-// 										{selectedModelData?.name && (
-// 											<ModelSelectorName>
-// 												{selectedModelData.name}
-// 											</ModelSelectorName>
-// 										)}
-// 									</PromptInputButton>
-// 								</ModelSelectorTrigger>
-// 								<ModelSelectorContent>
-// 									<ModelSelectorInput placeholder="Search models..." />
-// 									<ModelSelectorList>
-// 										<ModelSelectorEmpty>No models found.</ModelSelectorEmpty>
-// 										{["OpenAI", "Anthropic", "Google"].map((chef) => (
-// 											<ModelSelectorGroup heading={chef} key={chef}>
-// 												{models
-// 													.filter((m) => m.chef === chef)
-// 													.map((m) => (
-// 														<ModelSelectorItem
-// 															key={m.id}
-// 															onSelect={() => {
-// 																setModel(m.id);
-// 																setModelSelectorOpen(false);
-// 															}}
-// 															value={m.id}
-// 														>
-// 															<ModelSelectorLogo provider={m.chefSlug} />
-// 															<ModelSelectorName>{m.name}</ModelSelectorName>
-// 															<ModelSelectorLogoGroup>
-// 																{m.providers.map((provider) => (
-// 																	<ModelSelectorLogo
-// 																		key={provider}
-// 																		provider={provider}
-// 																	/>
-// 																))}
-// 															</ModelSelectorLogoGroup>
-// 															{model === m.id ? (
-// 																<CheckIcon className="ml-auto size-4" />
-// 															) : (
-// 																<div className="ml-auto size-4" />
-// 															)}
-// 														</ModelSelectorItem>
-// 													))}
-// 											</ModelSelectorGroup>
-// 										))}
-// 									</ModelSelectorList>
-// 								</ModelSelectorContent>
-// 							</ModelSelector>
-// 						</PromptInputTools>
-// 						<PromptInputSubmit status={status} />
-// 					</PromptInputFooter>
+// 		<div className="mx-auto p-6 relative w-full h-auto rounded-b-lg border">
+// 			<div className="flex flex-col h-full">
+// 				<Conversation>
+// 					<ConversationContent>
+// 						{messages.length === 0 ? (
+// 							<ConversationEmptyState
+// 								icon={<MessageSquare className="size-12" />}
+// 								title="Start a conversation"
+// 								description="Type a message below to begin chatting"
+// 							/>
+// 						) : (
+// 							messages.map((message) => (
+// 								<Message from={message.role} key={message.id}>
+// 									<MessageContent>
+// 										{message.parts.map((part, i) => {
+// 											switch (part.type) {
+// 												case "text": // we don't use any reasoning or tool calls in this example
+// 													return (
+// 														<MessageResponse key={`${message.id}-${i}`}>
+// 															{part.text}
+// 														</MessageResponse>
+// 													);
+// 												default:
+// 													return null;
+// 											}
+// 										})}
+// 									</MessageContent>
+// 								</Message>
+// 							))
+// 						)}
+// 					</ConversationContent>
+// 					<ConversationScrollButton />
+// 				</Conversation>
+// 				{/* <Input
+// 					onSubmit={handleSubmit}
+// 					className="mt-4 w-full max-w-2xl mx-auto relative"
+// 				> */}
+// 				<PromptInput
+// 					// onSubmit={({ text }) => {
+// 					// 	if (text.trim()) {
+// 					// 		sendMessage({ text });
+// 					// 	}
+// 					// }}
+// 					onSubmit={() => handleSubmit()}
+// 					className="mt-4 w-full max-w-2xl mx-auto relative"
+// 				>
+// 					<PromptInputTextarea
+// 						value={input}
+// 						placeholder="Say something..."
+// 						onChange={(e) => setInput(e.currentTarget.value)}
+// 						className="pr-12"
+// 					/>
+// 					<PromptInputSubmit
+// 						status={status === "streaming" ? "streaming" : "ready"}
+// 						disabled={!input.trim()}
+// 						className="absolute bottom-1 right-1"
+// 					/>
 // 				</PromptInput>
-
-// 				{/* <HeaderControls /> */}
-// 			</PromptInputProvider>
+// 			</div>
 // 		</div>
 // 	);
 // };
+// export default ConversationDemo;
 
-// export default ChatInput;
-
-"use client";
 import {
 	Conversation,
 	ConversationContent,
@@ -297,19 +173,52 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { MessageSquare } from "lucide-react";
 import { useState } from "react";
-import { useChat } from "@ai-sdk/react";
+
 const ConversationDemo = () => {
 	const [input, setInput] = useState("");
-	const { messages, sendMessage, status } = useChat();
+	const [messages, setMessages] = useState([]);
+	const [status, setStatus] = useState("ready");
+
 	const handleSubmit = (e) => {
-		e.preventDefault();
-		if (input.trim()) {
-			sendMessage({ text: input });
-			setInput("");
-		}
+		if (e?.preventDefault) e.preventDefault();
+
+		if (!input.trim()) return;
+
+		const userText = input;
+		setInput("");
+
+		// Add user message
+		const userMessage = {
+			id: Date.now().toString(),
+			role: "user",
+			content: userText,
+			parts: [{ type: "text", text: userText }],
+		};
+
+		setMessages((prev) => [...prev, userMessage]);
+		setStatus("streaming");
+
+		// Simulate assistant response
+		setTimeout(() => {
+			const assistantMessage = {
+				id: (Date.now() + 1).toString(),
+				role: "assistant",
+				content: `Mock reply to: ${userText}`,
+				parts: [
+					{
+						type: "text",
+						text: `You said: "${userText}". This is a mock response!`,
+					},
+				],
+			};
+
+			setMessages((prev) => [...prev, assistantMessage]);
+			setStatus("ready");
+		}, 600);
 	};
+
 	return (
-		<div className="mx-auto p-6 relative w-full h-auto rounded-lg border h-[600px]">
+		<div className="mx-auto p-6 relative w-full h-auto rounded-b-lg border">
 			<div className="flex flex-col h-full">
 				<Conversation>
 					<ConversationContent>
@@ -325,7 +234,7 @@ const ConversationDemo = () => {
 									<MessageContent>
 										{message.parts.map((part, i) => {
 											switch (part.type) {
-												case "text": // we don't use any reasoning or tool calls in this example
+												case "text":
 													return (
 														<MessageResponse key={`${message.id}-${i}`}>
 															{part.text}
@@ -342,16 +251,8 @@ const ConversationDemo = () => {
 					</ConversationContent>
 					<ConversationScrollButton />
 				</Conversation>
-				{/* <Input
-					onSubmit={handleSubmit}
-					className="mt-4 w-full max-w-2xl mx-auto relative"
-				> */}
 				<PromptInput
-					onSubmit={({ text }) => {
-						if (text.trim()) {
-							sendMessage({ text });
-						}
-					}}
+					onSubmit={handleSubmit}
 					className="mt-4 w-full max-w-2xl mx-auto relative"
 				>
 					<PromptInputTextarea
@@ -361,7 +262,7 @@ const ConversationDemo = () => {
 						className="pr-12"
 					/>
 					<PromptInputSubmit
-						status={status === "streaming" ? "streaming" : "ready"}
+						status={status}
 						disabled={!input.trim()}
 						className="absolute bottom-1 right-1"
 					/>
@@ -370,4 +271,5 @@ const ConversationDemo = () => {
 		</div>
 	);
 };
+
 export default ConversationDemo;
