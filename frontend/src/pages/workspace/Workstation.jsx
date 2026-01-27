@@ -4,6 +4,7 @@ import { SectionCards } from "@/components/section-cards";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import ChatInput from "@/components/ai/prompt-input";
+import ConversationDemo from "@/components/ai/prompt-input";
 
 // import { Group, Panel, Separator } from "react-resizable-panels";
 import { Group, Panel, Separator } from "react-resizable-panels";
@@ -31,8 +32,8 @@ export default function Workstation() {
 								<Editor />
 							</div>
 						</Panel> */}
-
-						<ChatInput />
+						{/* <ChatInput /> */}
+						<ConversationDemo />
 						{/* <Separator className="group w-1 cursor-col-resize bg-border">
 							<div className="mx-auto h-full w-0.5 bg-muted-foreground/40 group-hover:bg-primary transition-colors" />
 						</Separator>
