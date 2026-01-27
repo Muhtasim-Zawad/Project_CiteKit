@@ -11,7 +11,7 @@ import {
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-export function NavMain({ items }) {
+export function NavMain({ items, onItemClick }) {
 	const navigate = useNavigate();
 	const openProject = () => {
 		// navigate(`/workspace/${projectId}`);
@@ -48,7 +48,12 @@ export function NavMain({ items }) {
 				<SidebarMenu>
 					{items.map((item) => (
 						<SidebarMenuItem key={item.title}>
-							<SidebarMenuButton tooltip={item.title}>
+							<SidebarMenuButton
+								tooltip={item.title}
+								onClick={() => {
+									onItemClick?.(item.viewType);
+								}}
+							>
 								{item.icon && <item.icon />}
 								<span>{item.title}</span>
 							</SidebarMenuButton>

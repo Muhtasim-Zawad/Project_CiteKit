@@ -1,12 +1,29 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { DataTable } from "@/components/data-table";
-import { SectionCards } from "@/components/section-cards";
+import { Projects } from "@/components/section-cards";
+import { Resources } from "@/components/resources";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-
-import data from "./data.json";
+import { useView } from "@/context/ViewContext";
 
 export default function Dashboard() {
+	const { activeView } = useView();
+
+	const renderContent = () => {
+		switch (activeView) {
+			case "projects":
+				return <Projects />;
+			case "resources":
+				return <Resources />;
+			case "team":
+				return (
+					<div className="px-4 py-4 md:px-6 md:py-6">Team view coming soon</div>
+				);
+			default:
+				return <Projects />;
+		}
+	};
+
 	return (
 		<SidebarProvider
 			style={{
@@ -20,8 +37,7 @@ export default function Dashboard() {
 				<div className="flex flex-1 flex-col">
 					<div className="@container/main flex flex-1 flex-col gap-2">
 						<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-							<SectionCards />
-							{/* <DataTable data={data} /> */}
+							{renderContent()}
 						</div>
 					</div>
 				</div>

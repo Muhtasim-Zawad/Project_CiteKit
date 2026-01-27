@@ -21,6 +21,7 @@ import { NavDocuments } from "@/components/nav-documents";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";
+import { useView } from "@/context/ViewContext";
 import {
 	Sidebar,
 	SidebarContent,
@@ -42,16 +43,19 @@ const data = {
 			title: "Projects",
 			url: "#",
 			icon: IconFolder,
+			viewType: "projects",
 		},
 		{
 			title: "Resources",
 			url: "#",
 			icon: IconListDetails,
+			viewType: "resources",
 		},
 		{
 			title: "Team",
 			url: "#",
 			icon: IconUsers,
+			viewType: "team",
 		},
 	],
 	navClouds: [
@@ -139,6 +143,14 @@ const data = {
 };
 
 export function AppSidebar({ ...props }) {
+	const { setActiveView } = useView();
+
+	const handleNavClick = (viewType) => {
+		if (viewType) {
+			setActiveView(viewType);
+		}
+	};
+
 	return (
 		<Sidebar collapsible="offcanvas" {...props}>
 			<SidebarHeader>
@@ -157,7 +169,7 @@ export function AppSidebar({ ...props }) {
 				</SidebarMenu>
 			</SidebarHeader>
 			<SidebarContent>
-				<NavMain items={data.navMain} />
+				<NavMain items={data.navMain} onItemClick={handleNavClick} />
 				<NavDocuments items={data.documents} />
 				<NavSecondary items={data.navSecondary} className="mt-auto" />
 			</SidebarContent>

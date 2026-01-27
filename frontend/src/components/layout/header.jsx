@@ -1,6 +1,5 @@
 import React from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { Logo } from "@/components/logo";
 import { Link } from "react-scroll";
 // If using react-router-dom, import { Link } from 'react-router-dom'
 // Otherwise, we use <a> tags below
@@ -73,15 +72,8 @@ export const HeroHeader = () => {
 						<div className="absolute inset-0 m-auto hidden size-fit lg:block">
 							<ul className="flex gap-8 text-sm">
 								{menuItems.map((item, index) => (
-									// <li key={index}>
-									// 	<a
-									// 		href={item.href}
-									// 		className="text-muted-foreground hover:text-accent-foreground block duration-150"
-									// 	>
-									// 		<span>{item.name}</span>
-									// 	</a>
-									// </li>
 									<Link
+										key={index}
 										to={item.to}
 										smooth="easeInOutQuart"
 										duration={1500}
@@ -99,12 +91,15 @@ export const HeroHeader = () => {
 								<ul className="space-y-6 text-base">
 									{menuItems.map((item, index) => (
 										<li key={index}>
-											<a
-												href={item.href}
-												className="text-muted-foreground hover:text-accent-foreground block duration-150"
+											<Link
+												to={item.to}
+												smooth="easeInOutQuart"
+												duration={1500}
+												offset={-48}
+												className="cursor-pointer text-muted-foreground hover:text-accent-foreground block duration-150"
 											>
-												<span>{item.name}</span>
-											</a>
+												{item.name}
+											</Link>
 										</li>
 									))}
 								</ul>

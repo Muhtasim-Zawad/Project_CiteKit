@@ -12,7 +12,7 @@ import {
 const MOCK_RESOURCES = [
 	{
 		id: 1,
-		title: "Project 01 - Machine Learning",
+		title: "Advanced Machine Learning Techniques",
 		description:
 			"A comprehensive guide to modern machine learning approaches and their applications in real-world scenarios.",
 		year: 2024,
@@ -75,7 +75,7 @@ const MOCK_RESOURCES = [
 	},
 ];
 
-export function Projects() {
+export function Resources() {
 	return (
 		<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 			{MOCK_RESOURCES.map((resource) => (
