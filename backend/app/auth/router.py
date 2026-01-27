@@ -16,7 +16,7 @@ settings = get_settings()
 async def signup(user_data: UserSignUp):
     """
     Register a new user with email/password and create their profile.
-    Collects name, age, and optional photo during signup.
+    Collects name during signup.
     Profile is auto-created via database trigger using the user metadata.
     """
     supabase = get_supabase()
@@ -29,9 +29,7 @@ async def signup(user_data: UserSignUp):
             "password": user_data.password,
             "options": {
                 "data": {
-                    "name": user_data.name,
-                    "age": user_data.age,
-                    "photo_url": user_data.photo_url
+                    "name": user_data.name
                 }
             }
         })
@@ -52,9 +50,7 @@ async def signup(user_data: UserSignUp):
                 user={
                     "id": user_id,
                     "email": user_data.email,
-                    "name": user_data.name,
-                    "age": user_data.age,
-                    "photo_url": user_data.photo_url
+                    "name": user_data.name
                 }
             )
         else:
@@ -67,8 +63,6 @@ async def signup(user_data: UserSignUp):
                     "id": user_id,
                     "email": user_data.email,
                     "name": user_data.name,
-                    "age": user_data.age,
-                    "photo_url": user_data.photo_url,
                     "message": "Please check your email to confirm your account"
                 }
             )
@@ -122,9 +116,7 @@ async def login(credentials: UserLogin):
             user={
                 "id": auth_response.user.id,
                 "email": auth_response.user.email,
-                "name": profile.get("name", ""),
-                "age": profile.get("age", 0),
-                "photo_url": profile.get("photo_url")
+                "name": profile.get("name", "")
             }
         )
 
@@ -178,9 +170,7 @@ async def refresh_token(refresh_token: str):
             user={
                 "id": auth_response.user.id,
                 "email": auth_response.user.email,
-                "name": profile.get("name", ""),
-                "age": profile.get("age", 0),
-                "photo_url": profile.get("photo_url")
+                "name": profile.get("name", "")
             }
         )
 
