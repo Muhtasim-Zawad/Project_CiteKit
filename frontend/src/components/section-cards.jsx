@@ -9,7 +9,7 @@ import {
 	CardContent,
 } from "@/components/ui/card";
 
-const MOCK_RESOURCES = [
+const MOCK_PAPERS = [
 	{
 		id: 1,
 		title: "Project 01 - Machine Learning",
@@ -64,48 +64,39 @@ const MOCK_RESOURCES = [
 		authors: ["Dr. Robert Zhang"],
 		color: "bg-cyan-50 text-cyan-700 border-cyan-200",
 	},
-	{
-		id: 7,
-		title: "Edge Computing Applications",
-		description:
-			"Leveraging edge computing for low-latency and offline-capable applications.",
-		year: 2024,
-		authors: ["Jennifer White", "Carlos Martinez"],
-		color: "bg-rose-50 text-rose-700 border-rose-200",
-	},
 ];
 
 export function Projects() {
 	return (
 		<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-			{MOCK_RESOURCES.map((resource) => (
+			{MOCK_PAPERS.map((paper) => (
 				<Card
-					key={resource.id}
+					key={paper.id}
 					className="group relative overflow-hidden bg-gradient-to-br from-primary/5 via-card to-background backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:from-primary/10 hover:via-card hover:to-background border border-border/50"
 				>
 					<CardHeader className="pb-2">
 						<CardTitle className="text-base font-bold leading-tight line-clamp-2 text-foreground">
-							{resource.title}
+							{paper.title}
 						</CardTitle>
 						<div className="flex items-center gap-2 mt-2">
 							<span
-								className={`px-2 py-1 text-xs font-semibold rounded-md ${resource.color}`}
+								className={`px-2 py-1 text-xs font-semibold rounded-md ${paper.color}`}
 							>
-								{resource.year}
+								{paper.year}
 							</span>
 						</div>
 					</CardHeader>
 					<CardContent className="pb-4">
 						<p className="text-sm text-muted-foreground line-clamp-4 mb-3">
-							{resource.description}
-							{resource.description.length > 120 ? "..." : ""}
+							{paper.description}
+							{paper.description.length > 120 ? "..." : ""}
 						</p>
 						<div className="flex flex-wrap gap-1.5">
-							{resource.authors.map((author) => (
+							{paper.authors.map((author) => (
 								<Badge
 									key={author}
 									variant="outline"
-									className={`text-xs font-normal ${resource.color}`}
+									className={`text-xs font-normal ${paper.color}`}
 								>
 									{author}
 								</Badge>
