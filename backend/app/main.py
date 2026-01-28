@@ -4,6 +4,7 @@ from app.auth.router import router as auth_router
 from app.users.router import router as users_router
 from app.projects.router import router as projects_router
 from app.config import get_settings
+from app.agent.router import router as agent_router
 
 settings = get_settings()
 
@@ -26,7 +27,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(projects_router)
-
+app.include_router(agent_router)
 
 @app.get("/")
 async def root():
