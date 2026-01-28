@@ -20,7 +20,7 @@ export function SiteHeader() {
 							target="_blank"
 							className="dark:text-foreground"
 						>
-							GitHub
+							User
 						</a>
 					</Button>
 				</div>

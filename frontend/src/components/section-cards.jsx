@@ -14,52 +14,52 @@ const MOCK_PAPERS = [
 		id: 1,
 		title: "Project 01 - Machine Learning",
 		description:
-			"A comprehensive guide to modern machine learning approaches and their applications in real-world scenarios.",
+			"A comprehensive guide to modern machine learning approaches and their applications in real-world scenarios. Lorem ipsum dolor sit amet consectetur adipiscing elit quisque faucibus ex sapien vitae pellentesque sem placerat in id cursus mi pretium tellus duis convallis tempus leo eu aenean sed diam urna tempor pulvinar vivamus fringilla lacus nec metus bibendum egestas iaculis massa nisl malesuada lacinia integer nunc posuere ut hendrerit.",
 		year: 2024,
 		authors: ["Dr. Sarah Chen", "Prof. James Wilson"],
 		color: "bg-amber-50 text-amber-700 border-amber-200",
 	},
 	{
 		id: 2,
-		title: "Quantum Computing Fundamentals",
+		title: "Project 02 - Quantum Computing Fundamentals",
 		description:
-			"Explore the principles of quantum mechanics and their application to computational problems.",
+			"Explore the principles of quantum mechanics and their application to computational problems. Lorem ipsum dolor sit amet consectetur adipiscing elit quisque faucibus ex sapien vitae pellentesque sem placerat in id cursus mi pretium tellus duis convallis tempus leo eu aenean sed diam urna tempor pulvinar vivamus fringilla lacus nec metus bibendum egestas iaculis massa nisl malesuada lacinia integer nunc posuere ut hendrerit.",
 		year: 2023,
 		authors: ["Dr. Michael Torres"],
 		color: "bg-green-50 text-green-700 border-green-200",
 	},
 	{
 		id: 3,
-		title: "Neural Networks in Production",
+		title: "Project 03 - Neural Networks in Production",
 		description:
-			"Best practices for deploying and maintaining neural networks in production environments.",
+			"Best practices for deploying and maintaining neural networks in production environments. Lorem ipsum dolor sit amet consectetur adipiscing elit quisque faucibus ex sapien vitae pellentesque sem placerat in id cursus mi pretium tellus duis convallis tempus leo eu aenean sed diam urna tempor pulvinar vivamus fringilla lacus nec metus bibendum egestas iaculis massa nisl malesuada lacinia integer nunc posuere ut hendrerit.",
 		year: 2024,
 		authors: ["Emma Rodriguez", "David Kim"],
 		color: "bg-blue-50 text-blue-700 border-blue-200",
 	},
 	{
 		id: 4,
-		title: "Blockchain Technology Overview",
+		title: "Project 04 - Blockchain Technology Overview",
 		description:
-			"Understanding distributed ledger technology and its various applications beyond cryptocurrency.",
+			"Understanding distributed ledger technology and its various applications beyond cryptocurrency. Lorem ipsum dolor sit amet consectetur adipiscing elit quisque faucibus ex sapien vitae pellentesque sem placerat in id cursus mi pretium tellus duis convallis tempus leo eu aenean sed diam urna tempor pulvinar vivamus fringilla lacus nec metus bibendum egestas iaculis massa nisl malesuada lacinia integer nunc posuere ut hendrerit.",
 		year: 2023,
 		authors: ["Prof. Alex Kumar"],
 		color: "bg-pink-50 text-pink-700 border-pink-200",
 	},
 	{
 		id: 5,
-		title: "Data Privacy and Security",
+		title: "Project 05 - Data Privacy and Security",
 		description:
-			"Modern approaches to protecting sensitive data and ensuring compliance with international standards.",
+			"Modern approaches to protecting sensitive data and ensuring compliance with international standards. Lorem ipsum dolor sit amet consectetur adipiscing elit quisque faucibus ex sapien vitae pellentesque sem placerat in id cursus mi pretium tellus duis convallis tempus leo eu aenean sed diam urna tempor pulvinar vivamus fringilla lacus nec metus bibendum egestas iaculis massa nisl malesuada lacinia integer nunc posuere ut hendrerit.",
 		year: 2024,
 		authors: ["Lisa Anderson", "Marcus Johnson", "Rachel Lee"],
 		color: "bg-purple-50 text-purple-700 border-purple-200",
 	},
 	{
 		id: 6,
-		title: "Cloud Architecture Patterns",
+		title: "Project 06 - Cloud Architecture Patterns",
 		description:
-			"Design patterns and best practices for building scalable cloud-native applications.",
+			"Design patterns and best practices for building scalable cloud-native applications. Lorem ipsum dolor sit amet consectetur adipiscing elit quisque faucibus ex sapien vitae pellentesque sem placerat in id cursus mi pretium tellus duis convallis tempus leo eu aenean sed diam urna tempor pulvinar vivamus fringilla lacus nec metus bibendum egestas iaculis massa nisl malesuada lacinia integer nunc posuere ut hendrerit.",
 		year: 2023,
 		authors: ["Dr. Robert Zhang"],
 		color: "bg-cyan-50 text-cyan-700 border-cyan-200",

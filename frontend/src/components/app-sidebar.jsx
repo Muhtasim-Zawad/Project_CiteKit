@@ -125,17 +125,17 @@ const data = {
 	],
 	documents: [
 		{
-			name: "Paper_01",
+			name: "Project_01",
 			url: "#",
 			icon: IconFileDescription,
 		},
 		{
-			name: "Paper_02",
+			name: "Project_02",
 			url: "#",
 			icon: IconFileDescription,
 		},
 		{
-			name: "Paper_03",
+			name: "Project_03",
 			url: "#",
 			icon: IconFileDescription,
 		},

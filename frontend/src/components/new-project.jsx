@@ -50,7 +50,7 @@ export function NewProject({ trigger, onSave }) {
 							</Button>
 						</DialogClose>
 						<DialogClose asChild>
-							<Button type="submit">Save changes</Button>
+							<Button type="submit">Create project</Button>
 						</DialogClose>
 					</DialogFooter>
 				</form>
