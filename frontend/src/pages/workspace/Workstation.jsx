@@ -1,16 +1,13 @@
 import { AppSidebar } from "@/components/app-sidebar";
-import { DataTable } from "@/components/data-table";
-import { Projects } from "@/components/section-cards";
+// import { DataTable } from "@/components/data-table";
+// import { Projects } from "@/components/section-cards";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import ChatInput from "@/components/ai/prompt-input";
+// import ChatInput from "@/components/ai/prompt-input";
 import ConversationDemo from "@/components/ai/prompt-input";
 
 // import { Group, Panel, Separator } from "react-resizable-panels";
 import { Group, Panel, Separator } from "react-resizable-panels";
-
-import data from "./data.json";
-import Editor from "@/components/rich-text-editor/editor";
 
 export default function Workstation() {
 	return (
