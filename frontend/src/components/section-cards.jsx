@@ -1,5 +1,3 @@
-import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
-
 import { Badge } from "@/components/ui/badge";
 import {
 	Card,
@@ -8,197 +6,105 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle,
+	CardContent,
 } from "@/components/ui/card";
 
-export function SectionCards() {
-	return (
-		<div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-			<Card className="@container/card">
-				<CardHeader>
-					<CardDescription>Paper_01</CardDescription>
-					<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-						paper_01_title
-					</CardTitle>
-					{/* <CardAction>
-						<Badge variant="outline">
-							<IconTrendingUp />
-							+12.5%
-						</Badge>
-					</CardAction> */}
-				</CardHeader>
-				<CardFooter className="flex-col items-start gap-1.5 text-sm">
-					<div className="line-clamp-1 flex gap-2 font-medium">
-						Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea,
-						perferendis.
-					</div>
-					{/* <div className="text-muted-foreground">
-						Visitors for the last 6 months
-					</div> */}
-				</CardFooter>
-			</Card>
-			<Card className="@container/card">
-				<CardHeader>
-					<CardDescription>Paper_02</CardDescription>
-					<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-						paper_02_title
-					</CardTitle>
-					{/* <CardAction>
-						<Badge variant="outline">
-							<IconTrendingUp />
-							+12.5%
-						</Badge>
-					</CardAction> */}
-				</CardHeader>
-				<CardFooter className="flex-col items-start gap-1.5 text-sm">
-					<div className="line-clamp-1 flex gap-2 font-medium">
-						Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea,
-						perferendis.
-					</div>
-					{/* <div className="text-muted-foreground">
-						Visitors for the last 6 months
-					</div> */}
-				</CardFooter>
-			</Card>
-			<Card className="@container/card">
-				<CardHeader>
-					<CardDescription>Paper_03</CardDescription>
-					<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-						paper_03_title
-					</CardTitle>
-					{/* <CardAction>
-						<Badge variant="outline">
-							<IconTrendingUp />
-							+12.5%
-						</Badge>
-					</CardAction> */}
-				</CardHeader>
-				<CardFooter className="flex-col items-start gap-1.5 text-sm">
-					<div className="line-clamp-1 flex gap-2 font-medium">
-						Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea,
-						perferendis.
-					</div>
-					{/* <div className="text-muted-foreground">
-						Visitors for the last 6 months
-					</div> */}
-				</CardFooter>
-			</Card>
-			<Card className="@container/card">
-				<CardHeader>
-					<CardDescription>Paper_04</CardDescription>
-					<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-						paper_04_title
-					</CardTitle>
-					{/* <CardAction>
-						<Badge variant="outline">
-							<IconTrendingUp />
-							+12.5%
-						</Badge>
-					</CardAction> */}
-				</CardHeader>
-				<CardFooter className="flex-col items-start gap-1.5 text-sm">
-					<div className="line-clamp-1 flex gap-2 font-medium">
-						Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea,
-						perferendis.
-					</div>
-					{/* <div className="text-muted-foreground">
-						Visitors for the last 6 months
-					</div> */}
-				</CardFooter>
-			</Card>
+const MOCK_PAPERS = [
+	{
+		id: 1,
+		title: "Project 01 - Machine Learning",
+		description:
+			"A comprehensive guide to modern machine learning approaches and their applications in real-world scenarios. Lorem ipsum dolor sit amet consectetur adipiscing elit quisque faucibus ex sapien vitae pellentesque sem placerat in id cursus mi pretium tellus duis convallis tempus leo eu aenean sed diam urna tempor pulvinar vivamus fringilla lacus nec metus bibendum egestas iaculis massa nisl malesuada lacinia integer nunc posuere ut hendrerit.",
+		year: 2024,
+		authors: ["Dr. Sarah Chen", "Prof. James Wilson"],
+		color: "bg-amber-50 text-amber-700 border-amber-200",
+	},
+	{
+		id: 2,
+		title: "Project 02 - Quantum Computing Fundamentals",
+		description:
+			"Explore the principles of quantum mechanics and their application to computational problems. Lorem ipsum dolor sit amet consectetur adipiscing elit quisque faucibus ex sapien vitae pellentesque sem placerat in id cursus mi pretium tellus duis convallis tempus leo eu aenean sed diam urna tempor pulvinar vivamus fringilla lacus nec metus bibendum egestas iaculis massa nisl malesuada lacinia integer nunc posuere ut hendrerit.",
+		year: 2023,
+		authors: ["Dr. Michael Torres"],
+		color: "bg-green-50 text-green-700 border-green-200",
+	},
+	{
+		id: 3,
+		title: "Project 03 - Neural Networks in Production",
+		description:
+			"Best practices for deploying and maintaining neural networks in production environments. Lorem ipsum dolor sit amet consectetur adipiscing elit quisque faucibus ex sapien vitae pellentesque sem placerat in id cursus mi pretium tellus duis convallis tempus leo eu aenean sed diam urna tempor pulvinar vivamus fringilla lacus nec metus bibendum egestas iaculis massa nisl malesuada lacinia integer nunc posuere ut hendrerit.",
+		year: 2024,
+		authors: ["Emma Rodriguez", "David Kim"],
+		color: "bg-blue-50 text-blue-700 border-blue-200",
+	},
+	{
+		id: 4,
+		title: "Project 04 - Blockchain Technology Overview",
+		description:
+			"Understanding distributed ledger technology and its various applications beyond cryptocurrency. Lorem ipsum dolor sit amet consectetur adipiscing elit quisque faucibus ex sapien vitae pellentesque sem placerat in id cursus mi pretium tellus duis convallis tempus leo eu aenean sed diam urna tempor pulvinar vivamus fringilla lacus nec metus bibendum egestas iaculis massa nisl malesuada lacinia integer nunc posuere ut hendrerit.",
+		year: 2023,
+		authors: ["Prof. Alex Kumar"],
+		color: "bg-pink-50 text-pink-700 border-pink-200",
+	},
+	{
+		id: 5,
+		title: "Project 05 - Data Privacy and Security",
+		description:
+			"Modern approaches to protecting sensitive data and ensuring compliance with international standards. Lorem ipsum dolor sit amet consectetur adipiscing elit quisque faucibus ex sapien vitae pellentesque sem placerat in id cursus mi pretium tellus duis convallis tempus leo eu aenean sed diam urna tempor pulvinar vivamus fringilla lacus nec metus bibendum egestas iaculis massa nisl malesuada lacinia integer nunc posuere ut hendrerit.",
+		year: 2024,
+		authors: ["Lisa Anderson", "Marcus Johnson", "Rachel Lee"],
+		color: "bg-purple-50 text-purple-700 border-purple-200",
+	},
+	{
+		id: 6,
+		title: "Project 06 - Cloud Architecture Patterns",
+		description:
+			"Design patterns and best practices for building scalable cloud-native applications. Lorem ipsum dolor sit amet consectetur adipiscing elit quisque faucibus ex sapien vitae pellentesque sem placerat in id cursus mi pretium tellus duis convallis tempus leo eu aenean sed diam urna tempor pulvinar vivamus fringilla lacus nec metus bibendum egestas iaculis massa nisl malesuada lacinia integer nunc posuere ut hendrerit.",
+		year: 2023,
+		authors: ["Dr. Robert Zhang"],
+		color: "bg-cyan-50 text-cyan-700 border-cyan-200",
+	},
+];
 
-			{/* ----------------------------------------------- */}
-			<Card className="@container/card">
-				<CardHeader>
-					<CardDescription>Paper_01</CardDescription>
-					<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-						paper_01_title
-					</CardTitle>
-					{/* <CardAction>
-						<Badge variant="outline">
-							<IconTrendingUp />
-							+12.5%
-						</Badge>
-					</CardAction> */}
-				</CardHeader>
-				<CardFooter className="flex-col items-start gap-1.5 text-sm">
-					<div className="line-clamp-1 flex gap-2 font-medium">
-						Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea,
-						perferendis.
-					</div>
-					{/* <div className="text-muted-foreground">
-						Visitors for the last 6 months
-					</div> */}
-				</CardFooter>
-			</Card>
-			<Card className="@container/card">
-				<CardHeader>
-					<CardDescription>Paper_02</CardDescription>
-					<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-						paper_02_title
-					</CardTitle>
-					{/* <CardAction>
-						<Badge variant="outline">
-							<IconTrendingUp />
-							+12.5%
-						</Badge>
-					</CardAction> */}
-				</CardHeader>
-				<CardFooter className="flex-col items-start gap-1.5 text-sm">
-					<div className="line-clamp-1 flex gap-2 font-medium">
-						Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea,
-						perferendis.
-					</div>
-					{/* <div className="text-muted-foreground">
-						Visitors for the last 6 months
-					</div> */}
-				</CardFooter>
-			</Card>
-			<Card className="@container/card">
-				<CardHeader>
-					<CardDescription>Paper_03</CardDescription>
-					<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-						paper_03_title
-					</CardTitle>
-					{/* <CardAction>
-						<Badge variant="outline">
-							<IconTrendingUp />
-							+12.5%
-						</Badge>
-					</CardAction> */}
-				</CardHeader>
-				<CardFooter className="flex-col items-start gap-1.5 text-sm">
-					<div className="line-clamp-1 flex gap-2 font-medium">
-						Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea,
-						perferendis.
-					</div>
-					{/* <div className="text-muted-foreground">
-						Visitors for the last 6 months
-					</div> */}
-				</CardFooter>
-			</Card>
-			<Card className="@container/card">
-				<CardHeader>
-					<CardDescription>Paper_04</CardDescription>
-					<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-						paper_04_title
-					</CardTitle>
-					{/* <CardAction>
-						<Badge variant="outline">
-							<IconTrendingUp />
-							+12.5%
-						</Badge>
-					</CardAction> */}
-				</CardHeader>
-				<CardFooter className="flex-col items-start gap-1.5 text-sm">
-					<div className="line-clamp-1 flex gap-2 font-medium">
-						Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea,
-						perferendis.
-					</div>
-					{/* <div className="text-muted-foreground">
-						Visitors for the last 6 months
-					</div> */}
-				</CardFooter>
-			</Card>
+export function Projects() {
+	return (
+		<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+			{MOCK_PAPERS.map((paper) => (
+				<Card
+					key={paper.id}
+					className="group relative overflow-hidden bg-gradient-to-br from-primary/5 via-card to-background backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:from-primary/10 hover:via-card hover:to-background border border-border/50"
+				>
+					<CardHeader className="pb-2">
+						<CardTitle className="text-base font-bold leading-tight line-clamp-2 text-foreground">
+							{paper.title}
+						</CardTitle>
+						<div className="flex items-center gap-2 mt-2">
+							<span
+								className={`px-2 py-1 text-xs font-semibold rounded-md ${paper.color}`}
+							>
+								{paper.year}
+							</span>
+						</div>
+					</CardHeader>
+					<CardContent className="pb-4">
+						<p className="text-sm text-muted-foreground line-clamp-4 mb-3">
+							{paper.description}
+							{paper.description.length > 120 ? "..." : ""}
+						</p>
+						<div className="flex flex-wrap gap-1.5">
+							{paper.authors.map((author) => (
+								<Badge
+									key={author}
+									variant="outline"
+									className={`text-xs font-normal ${paper.color}`}
+								>
+									{author}
+								</Badge>
+							))}
+						</div>
+					</CardContent>
+				</Card>
+			))}
 		</div>
 	);
 }
