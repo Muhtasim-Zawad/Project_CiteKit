@@ -94,6 +94,10 @@ def fetch_openalex_metrics(state: CrossRefState) -> CrossRefState:
                     "i10_index": summary_stats.get("i10_index", 0)
                 }
                 
+                # Make sure the list exists in state before appending
+                if "authors_metrics" not in state or state["authors_metrics"] is None:
+                    state["authors_metrics"] = []
+                    
                 state["authors_metrics"].append(metrics)
                 
             except Exception as e:
@@ -106,6 +110,7 @@ def fetch_openalex_metrics(state: CrossRefState) -> CrossRefState:
             state["errors"].append(f"OpenAlex Works HTTP Error: {str(e)}")
     except Exception as e:
         state["errors"].append(f"Unexpected OpenAlex error: {str(e)}")
+
 
     return state
 

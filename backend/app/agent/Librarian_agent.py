@@ -80,9 +80,45 @@ def extract_search_terms(state: AgentState) -> AgentState:
     return {**state, "search_terms": search_terms}
 
 
+from .cross__ref_agent import cross_ref_agent
+
 def search_papers(state: AgentState) -> AgentState:
     results = search_openalex(state["search_terms"])
-    return {**state, "results": results}
+    
+    # Enrich each paper with cross-ref data
+    enriched_results = []
+    for paper in results:
+        # Check if there is an error from OpenAlex search itself
+        if "error" in paper:
+            enriched_results.append(paper)
+            continue
+            
+        doi = paper.get("doi")
+        if doi:
+            # Clean DOI (OpenAlex often returns it as an HTTPS url, we need the raw DOI like 10.xxxx/yyyy)
+            clean_doi = doi.replace("https://doi.org/", "")
+            
+            # Invoke cross_ref_agent
+            cross_state = {
+                "doi": clean_doi,
+                "full_text": None,
+                "download_url": None,
+                "authors_metrics": [],
+                "errors": []
+            }
+            try:
+                cross_result = cross_ref_agent.invoke(cross_state)
+                # Attach cross_ref data to the paper
+                paper["metrics"] = cross_result.get("authors_metrics", [])
+                paper["full_text"] = cross_result.get("full_text")
+                paper["download_url"] = cross_result.get("download_url")
+                # Exclude cross_ref errors to keep response clean, or include if needed
+            except Exception as e:
+                paper["cross_ref_error"] = str(e)
+                
+        enriched_results.append(paper)
+        
+    return {**state, "results": enriched_results}
 
 
 # -------- Graph -------- #
