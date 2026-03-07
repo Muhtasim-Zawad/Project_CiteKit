@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     supabase_key: str
     supabase_jwt_secret: str
     groq_api_key: str
+    core_api_key: str | None = None
     app_url: str = "http://localhost:8000"
     frontend_url: str = "http://localhost:3000"
 

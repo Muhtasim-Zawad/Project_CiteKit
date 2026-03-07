@@ -2,6 +2,8 @@
 from fastapi import APIRouter, HTTPException
 from .Librarian_class import ResearchRequest, ResearchResponse
 from .Librarian_agent import agent
+from .cross_ref_class import CrossRefRequest, CrossRefResponse
+from .cross__ref_agent import cross_ref_agent
 
 router = APIRouter(prefix="/research", tags=["Research"])
 
@@ -25,6 +27,37 @@ def research_papers(payload: ResearchRequest):
         return {
             "search_terms": final_state.get("search_terms", ""),
             "results": final_state.get("results", [])
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/cross-ref", response_model=CrossRefResponse)
+def get_cross_ref_data(payload: CrossRefRequest):
+    """
+    Accepts a DOI and returns enhanced data for the paper, including
+    CORE API full text (or download links) and OpenAlex author metrics.
+    """
+    try:
+        # Initial State
+        initial_state = {
+            "doi": payload.doi,
+            "full_text": None,
+            "download_url": None,
+            "authors_metrics": [],
+            "errors": []
+        }
+
+        # Invoke agent
+        final_state = cross_ref_agent.invoke(initial_state)
+
+        # Return structured response
+        return {
+            "doi": final_state.get("doi", payload.doi),
+            "full_text": final_state.get("full_text"),
+            "download_url": final_state.get("download_url"),
+            "authors_metrics": final_state.get("authors_metrics", []),
+            "errors": final_state.get("errors", [])
         }
 
     except Exception as e:
