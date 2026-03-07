@@ -81,45 +81,54 @@ def extract_search_terms(state: AgentState) -> AgentState:
 
 
 from .cross__ref_agent import cross_ref_agent
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+def _enrich_paper(paper):
+    """Enriches a single paper with cross-ref data. Designed to run in a thread."""
+    if "error" in paper:
+        return paper
+    
+    doi = paper.get("doi")
+    if not doi:
+        return paper
+
+    clean_doi = doi.replace("https://doi.org/", "")
+    cross_state = {
+        "doi": clean_doi,
+        "full_text": None,
+        "download_url": None,
+        "authors_metrics": [],
+        "errors": []
+    }
+    try:
+        cross_result = cross_ref_agent.invoke(cross_state)
+        paper["metrics"] = cross_result.get("authors_metrics", [])
+        paper["full_text"] = cross_result.get("full_text")
+        paper["download_url"] = cross_result.get("download_url")
+    except Exception as e:
+        paper["cross_ref_error"] = str(e)
+    
+    return paper
 
 def search_papers(state: AgentState) -> AgentState:
     results = search_openalex(state["search_terms"])
     
-    # Enrich each paper with cross-ref data
-    enriched_results = []
-    for paper in results:
-        # Check if there is an error from OpenAlex search itself
-        if "error" in paper:
-            enriched_results.append(paper)
-            continue
-            
-        doi = paper.get("doi")
-        if doi:
-            # Clean DOI (OpenAlex often returns it as an HTTPS url, we need the raw DOI like 10.xxxx/yyyy)
-            clean_doi = doi.replace("https://doi.org/", "")
-            
-            # Invoke cross_ref_agent
-            cross_state = {
-                "doi": clean_doi,
-                "full_text": None,
-                "download_url": None,
-                "authors_metrics": [],
-                "errors": []
-            }
+    # Enrich all papers in parallel — all cross-ref calls fire simultaneously
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        futures = {executor.submit(_enrich_paper, paper): paper for paper in results}
+        enriched_results = []
+        for future in as_completed(futures):
             try:
-                cross_result = cross_ref_agent.invoke(cross_state)
-                # Attach cross_ref data to the paper
-                paper["metrics"] = cross_result.get("authors_metrics", [])
-                paper["full_text"] = cross_result.get("full_text")
-                paper["download_url"] = cross_result.get("download_url")
-                # Exclude cross_ref errors to keep response clean, or include if needed
+                enriched_results.append(future.result())
             except Exception as e:
+                paper = futures[future]
                 paper["cross_ref_error"] = str(e)
-                
-        enriched_results.append(paper)
-        
+                enriched_results.append(paper)
+
     return {**state, "results": enriched_results}
 
+
+from app.agent.critic_agent import critique_results
 
 # -------- Graph -------- #
 
@@ -127,9 +136,11 @@ def create_research_agent():
     graph = StateGraph(AgentState)
     graph.add_node("extract", extract_search_terms)
     graph.add_node("search", search_papers)
+    graph.add_node("critique", critique_results)
 
     graph.add_edge("extract", "search")
-    graph.add_edge("search", END)
+    graph.add_edge("search", "critique")
+    graph.add_edge("critique", END)
 
     graph.set_entry_point("extract")
     return graph.compile()

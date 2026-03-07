@@ -15,6 +15,8 @@ class Paper(BaseModel):
     full_text: Optional[str] = None
     download_url: Optional[str] = None
     cross_ref_error: Optional[str] = None
+    score: Optional[int] = None
+    critic_reasoning: Optional[str] = None
 
 class ResearchResponse(BaseModel):
     search_terms: str
