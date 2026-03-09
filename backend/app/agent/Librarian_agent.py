@@ -98,6 +98,7 @@ def _enrich_paper(paper):
         "full_text": None,
         "download_url": None,
         "authors_metrics": [],
+        "dimensions_metrics": None,
         "errors": []
     }
     try:
@@ -105,6 +106,7 @@ def _enrich_paper(paper):
         paper["metrics"] = cross_result.get("authors_metrics", [])
         paper["full_text"] = cross_result.get("full_text")
         paper["download_url"] = cross_result.get("download_url")
+        paper["dimensions_metrics"] = cross_result.get("dimensions_metrics")
     except Exception as e:
         paper["cross_ref_error"] = str(e)
     
