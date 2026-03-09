@@ -11,11 +11,16 @@ import {
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-export function NavMain({ items, onItemClick }) {
+export function NavMain({ items, onItemClick, isWorkspace, activeView }) {
 	const navigate = useNavigate();
 	const openProject = () => {
 		// navigate(`/workspace/${projectId}`);
 		navigate("/workspace");
+	};
+
+	const handleNewChat = () => {
+		// TODO: Implement new chat creation
+		console.log("New chat creation");
 	};
 
 	return (
@@ -23,26 +28,29 @@ export function NavMain({ items, onItemClick }) {
 			<SidebarGroupContent className="flex flex-col gap-2">
 				<SidebarMenu>
 					<SidebarMenuItem className="flex items-center gap-2">
-						<NewProject
-							trigger={
-								<SidebarMenuButton
-									tooltip="Quick Create"
-									className="hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground transition-colors min-w-8 duration-100 ease-linear"
-								>
-									<IconCirclePlusFilled />
-									<span>New Project</span>
-								</SidebarMenuButton>
-							}
-							onSave={() => navigate("/workspace")}
-						/>
-						{/* <Button
-							size="icon"
-							className="size-8 group-data-[collapsible=icon]:opacity-0"
-							variant="outline"
-						>
-							<IconMail />
-							<span className="sr-only">Inbox</span>
-						</Button> */}
+						{isWorkspace ? (
+							<Button
+								onClick={handleNewChat}
+								className="hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground transition-colors duration-100 ease-linear w-full justify-start gap-2"
+								variant="outline"
+							>
+								<IconCirclePlusFilled className="size-4" />
+								<span>New Chat</span>
+							</Button>
+						) : (
+							<NewProject
+								trigger={
+									<SidebarMenuButton
+										tooltip="Quick Create"
+										className="hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground transition-colors min-w-8 duration-100 ease-linear"
+									>
+										<IconCirclePlusFilled />
+										<span>New Project</span>
+									</SidebarMenuButton>
+								}
+								onSave={() => navigate("/workspace")}
+							/>
+						)}
 					</SidebarMenuItem>
 				</SidebarMenu>
 				<SidebarMenu>
@@ -50,6 +58,7 @@ export function NavMain({ items, onItemClick }) {
 						<SidebarMenuItem key={item.title}>
 							<SidebarMenuButton
 								tooltip={item.title}
+								isActive={item.viewType === activeView}
 								onClick={() => {
 									onItemClick?.(item.viewType);
 								}}

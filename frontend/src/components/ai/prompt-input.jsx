@@ -118,7 +118,7 @@ const PaperCard = ({ paper, onSelect }) => {
 					>
 						<Quote className="h-3 w-3 mr-1" /> {paper.citations}
 					</Button>
-					<Button className="ml-auto bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2">
+					<Button className="h-7 ml-auto bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1">
 						Save
 					</Button>
 				</div>
@@ -220,6 +220,12 @@ const PaperModal = ({ paper, isOpen, onClose }) => {
 							+ Add
 						</Button>
 					</div>
+					{/* <BookOpen className="h-4 w-4 mr-2" /> View Full Paper
+						</Button>
+						<Button variant="secondary" className="flex-1">
+							<MessageSquare className="h-4 w-4 mr-2" /> Open in Chat
+						</Button>
+					</div> */}
 				</div>
 			</DialogContent>
 		</Dialog>

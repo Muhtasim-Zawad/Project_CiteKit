@@ -24,12 +24,12 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 
-export function NavDocuments({ items }) {
+export function NavDocuments({ items, title = "Recent Projects" }) {
 	const { isMobile } = useSidebar();
 
 	return (
 		<SidebarGroup className="group-data-[collapsible=icon]:hidden">
-			<SidebarGroupLabel>Recent Projects</SidebarGroupLabel>
+			<SidebarGroupLabel>{title}</SidebarGroupLabel>
 			<SidebarMenu>
 				{items.map((item) => (
 					<SidebarMenuItem key={item.name}>
