@@ -38,3 +38,15 @@ class ProjectResponse(ProjectBase):
 
 class MessageResponse(BaseModel): 
     message: str
+
+
+SQL_CREATE_PROJECTS = """
+CREATE TABLE IF NOT EXISTS public.projects (
+    project_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    summary TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+"""

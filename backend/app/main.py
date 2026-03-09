@@ -5,6 +5,7 @@ from app.users.router import router as users_router
 from app.projects.router import router as projects_router
 from app.config import get_settings
 from app.agent.router import router as agent_router
+from app.db.init_db import check_tables
 
 settings = get_settings()
 
@@ -28,6 +29,12 @@ app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(projects_router)
 app.include_router(agent_router)
+
+@app.on_event("startup")
+async def startup():
+    print("Checking database tables...")
+    check_tables()
+
 
 @app.get("/")
 async def root():

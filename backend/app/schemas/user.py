@@ -50,3 +50,13 @@ class UserProfileResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+
+SQL_CREATE_PROFILES = """
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    name VARCHAR,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+"""
