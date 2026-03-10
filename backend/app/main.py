@@ -6,6 +6,7 @@ from app.projects.router import router as projects_router
 from app.config import get_settings
 from app.agent.router import router as agent_router
 from app.chat.router import router as chat_router
+from app.research_network.router import router as research_network_router
 from app.db.init_db import check_tables
 
 settings = get_settings()
@@ -31,6 +32,7 @@ app.include_router(users_router)
 app.include_router(projects_router)
 app.include_router(agent_router)
 app.include_router(chat_router)
+app.include_router(research_network_router)
 
 @app.on_event("startup")
 async def startup():
