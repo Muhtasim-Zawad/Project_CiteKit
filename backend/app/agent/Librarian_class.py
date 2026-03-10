@@ -15,6 +15,7 @@ class Paper(BaseModel):
     full_text: Optional[str] = None
     download_url: Optional[str] = None
     cross_ref_error: Optional[str] = None
+    dimensions_metrics: Optional[Dict] = None
     score: Optional[int] = None
     critic_reasoning: Optional[str] = None
 

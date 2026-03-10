@@ -7,6 +7,10 @@ from app.config import get_settings
 
 settings = get_settings()
 
+# ---------------------------------------------------------------------------
+# CORE API
+# ---------------------------------------------------------------------------
+
 def get_core_api_url():
     """Returns the CORE Discover API endpoint."""
     return "https://api.core.ac.uk/v3/discover"
@@ -50,6 +54,10 @@ def fetch_core_data(state: CrossRefState) -> CrossRefState:
 
     return state
 
+
+# ---------------------------------------------------------------------------
+# OpenAlex API
+# ---------------------------------------------------------------------------
 
 def fetch_openalex_metrics(state: CrossRefState) -> CrossRefState:
     """Fetch paper from OpenAlex by DOI, extract authors, and fetch their metrics."""
@@ -111,8 +119,72 @@ def fetch_openalex_metrics(state: CrossRefState) -> CrossRefState:
     except Exception as e:
         state["errors"].append(f"Unexpected OpenAlex error: {str(e)}")
 
+    return state
+
+
+# ---------------------------------------------------------------------------
+# Dimensions Metrics API
+# ---------------------------------------------------------------------------
+
+DIMENSIONS_METRICS_BASE_URL = "https://metrics-api.dimensions.ai/doi"
+
+def fetch_dimensions_metrics(state: CrossRefState) -> CrossRefState:
+    """
+    Fetch citation metrics from the Dimensions Metrics API using the DOI.
+
+    Returns:
+        times_cited        – total citation count in Dimensions
+        recent_citations   – citations in the last 2 years
+        relative_citation_ratio (RCR) – citation performance relative to field peers
+        field_citation_ratio    (FCR) – citation performance vs similarly-aged articles
+
+    The API is free for non-commercial use and requires no API key.
+    Endpoint: https://metrics-api.dimensions.ai/doi/{doi}
+    """
+    doi = state.get("doi")
+
+    if not doi:
+        state["errors"].append("No DOI provided for Dimensions Metrics API.")
+        return state
+
+    url = f"{DIMENSIONS_METRICS_BASE_URL}/{doi}"
+
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        state["dimensions_metrics"] = {
+            "times_cited": data.get("times_cited", 0),
+            "recent_citations": data.get("recent_citations", 0),
+            "relative_citation_ratio": data.get("relative_citation_ratio"),
+            "field_citation_ratio": data.get("field_citation_ratio"),
+        }
+
+    except requests.exceptions.HTTPError as e:
+        status = e.response.status_code if e.response is not None else "unknown"
+        if status == 404:
+            state["errors"].append(
+                f"Dimensions Metrics API: No data found for DOI '{doi}'."
+            )
+        elif status == 403:
+            state["errors"].append(
+                "Dimensions Metrics API: Access forbidden. "
+                "Register at https://www.dimensions.ai/metricssignup/ for non-commercial use."
+            )
+        else:
+            state["errors"].append(f"Dimensions Metrics API HTTP error {status}: {str(e)}")
+    except requests.exceptions.Timeout:
+        state["errors"].append("Dimensions Metrics API: Request timed out.")
+    except Exception as e:
+        state["errors"].append(f"Unexpected Dimensions Metrics API error: {str(e)}")
 
     return state
+
+
+# ---------------------------------------------------------------------------
+# Graph assembly
+# ---------------------------------------------------------------------------
 
 def create_cross_ref_agent():
     graph = StateGraph(CrossRefState)
@@ -120,11 +192,12 @@ def create_cross_ref_agent():
     # Add Nodes
     graph.add_node("fetch_core", fetch_core_data)
     graph.add_node("fetch_openalex", fetch_openalex_metrics)
+    graph.add_node("fetch_dimensions", fetch_dimensions_metrics)
     
-    # Execute sequentially since they don't depend on each other's outputs
-    # But doing it sequentially is simpler than managing parallel execution in base LangGraph
+    # Sequential: CORE -> OpenAlex -> Dimensions -> END
     graph.add_edge("fetch_core", "fetch_openalex")
-    graph.add_edge("fetch_openalex", END)
+    graph.add_edge("fetch_openalex", "fetch_dimensions")
+    graph.add_edge("fetch_dimensions", END)
     
     graph.set_entry_point("fetch_core")
     

@@ -35,8 +35,10 @@ def research_papers(payload: ResearchRequest):
 @router.post("/cross-ref", response_model=CrossRefResponse)
 def get_cross_ref_data(payload: CrossRefRequest):
     """
-    Accepts a DOI and returns enhanced data for the paper, including
-    CORE API full text (or download links) and OpenAlex author metrics.
+    Accepts a DOI and returns enhanced data for the paper, including:
+    - CORE API full text or download link
+    - OpenAlex author metrics (h-index, i10-index)
+    - Dimensions citation metrics (times_cited, recent_citations, RCR, FCR)
     """
     try:
         # Initial State
@@ -45,6 +47,7 @@ def get_cross_ref_data(payload: CrossRefRequest):
             "full_text": None,
             "download_url": None,
             "authors_metrics": [],
+            "dimensions_metrics": None,
             "errors": []
         }
 
@@ -57,6 +60,7 @@ def get_cross_ref_data(payload: CrossRefRequest):
             "full_text": final_state.get("full_text"),
             "download_url": final_state.get("download_url"),
             "authors_metrics": final_state.get("authors_metrics", []),
+            "dimensions_metrics": final_state.get("dimensions_metrics"),
             "errors": final_state.get("errors", [])
         }
 
