@@ -42,3 +42,28 @@ def parse_authors(authors: Optional[List[Dict]]) -> Optional[List[Dict]]:
         }
         for author in authors
     ]
+
+def _handle_response(response: requests.Response, identifier: str) -> Dict[str, Any]:
+    """Shared response handler for sync requests."""
+    if response.status_code == 200:
+        return {"success": True, "data": response.json(), "error": None}
+    if response.status_code == 404:
+        return {"success": False, "data": None, "error": f"Paper not found: {identifier}"}
+    return {
+        "success": False,
+        "data": None,
+        "error": f"Semantic Scholar error {response.status_code}: {response.text[:200]}"
+    }
+
+
+def _handle_httpx_response(response: httpx.Response, identifier: str) -> Dict[str, Any]:
+    """Shared response handler for async httpx requests."""
+    if response.status_code == 200:
+        return {"success": True, "data": response.json(), "error": None}
+    if response.status_code == 404:
+        return {"success": False, "data": None, "error": f"Paper not found: {identifier}"}
+    return {
+        "success": False,
+        "data": None,
+        "error": f"Semantic Scholar error {response.status_code}: {response.text[:200]}"
+    }
