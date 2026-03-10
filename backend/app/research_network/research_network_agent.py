@@ -18,3 +18,27 @@ REFERENCE_FIELDS = [
     "isOpenAccess", "citationCount", "referenceCount",
     "influentialCitationCount", "publicationVenue", "externalIds"
 ]
+
+
+def clean_doi(doi: str) -> str:
+    """Normalize DOI by stripping common prefixes."""
+    return (
+        doi.replace("https://doi.org/", "")
+           .replace("http://doi.org/", "")
+           .replace("doi.org/", "")
+           .replace("DOI:", "")
+           .strip()
+    )
+
+
+def parse_authors(authors: Optional[List[Dict]]) -> Optional[List[Dict]]:
+    """Convert Semantic Scholar author format to a clean list."""
+    if not authors:
+        return None
+    return [
+        {
+            "name": author.get("name", ""),
+            "author_id": author.get("authorId")
+        }
+        for author in authors
+    ]
