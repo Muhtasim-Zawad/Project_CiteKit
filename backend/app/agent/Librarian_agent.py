@@ -36,12 +36,21 @@ def search_openalex(search_query: str, per_page: int = 5):
             
             raw_abstract = work.get('abstract_inverted_index')
             abstract_text = de_invert_abstract(raw_abstract)
+
+            # Extract author names from authorships
+            authorships = work.get('authorships', [])
+            author_names = ", ".join(
+                a.get('author', {}).get('display_name', '')
+                for a in authorships
+                if a.get('author', {}).get('display_name')
+            ) or None
             
             results.append({
                 'title': title,
                 'doi': doi,
                 'year': year,
-                'abstract': abstract_text
+                'abstract': abstract_text,
+                'author': author_names
             })
         
         return results

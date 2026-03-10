@@ -11,6 +11,7 @@ class Paper(BaseModel):
     doi: str
     year: Union[int, str]
     abstract: str
+    author: Optional[str] = None
     metrics: Optional[List[Dict]] = None
     full_text: Optional[str] = None
     download_url: Optional[str] = None

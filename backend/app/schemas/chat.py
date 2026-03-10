@@ -1,7 +1,8 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from uuid import UUID
+from app.schemas.chat_result import ChatResultResponse
 
 
 class Chat(BaseModel):
@@ -18,7 +19,15 @@ class Chat(BaseModel):
 class ChatCreate(BaseModel):
     project_id: UUID
     query: str
+
+
+class ChatResponse(BaseModel):
+    id: int
+    project_id: UUID
+    query: str
     search_terms: Optional[str] = None
+    created_at: Optional[datetime] = None
+    results: List[ChatResultResponse] = []
 
 
 SQL_CREATE = """
