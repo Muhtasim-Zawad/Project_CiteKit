@@ -18,24 +18,23 @@ async def create_chat(
     supabase=Depends(get_supabase)
 ):
     """
-    Create a chat under a project and run the full research pipeline.
+    Create a chat under a thread and run the full research pipeline.
     Stores references, chat results, and reference metrics from the agent.
     """
-    project_id = str(payload.project_id)
+    thread_id = str(payload.thread_id)
 
-    # 1. Verify project belongs to user and fetch summary
-    project = supabase.table("projects").select("project_id, summary") \
-        .eq("project_id", project_id) \
-        .eq("user_id", current_user["id"]) \
+    # 1. Verify thread exists and belongs to user (via project ownership)
+    thread = supabase.table("thread").select("thread_id, summary, projects!inner(user_id)") \
+        .eq("thread_id", thread_id) \
         .execute()
 
-    if not project.data:
+    if not thread.data or thread.data[0]["projects"]["user_id"] != current_user["id"]:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Project not found or not owned by user"
+            detail="Thread not found or not owned by user"
         )
 
-    research_summary = project.data[0].get("summary") or ""
+    research_summary = thread.data[0].get("summary") or ""
 
     # 2. Expand the user query using the Query Expansion Agent
     try:
@@ -67,7 +66,7 @@ async def create_chat(
 
     # 3. Create the chat entry
     chat_resp = supabase.table("chat").insert({
-        "project_id": project_id,
+        "thread_id": thread_id,
         "query": payload.query,
         "search_terms": search_terms
     }).execute()
@@ -169,12 +168,12 @@ async def create_chat(
             dimensions_metrics=dimensions_metrics,
         ))
 
-    # Update project summary with all chat queries so far
-    generate_and_store_summary(supabase, str(payload.project_id))
+    # Update thread summary with all chat queries so far
+    generate_and_store_summary(supabase, thread_id)
 
     return ChatResponse(
         id=chat_id,
-        project_id=payload.project_id,
+        thread_id=payload.thread_id,
         query=payload.query,
         search_terms=search_terms,
         created_at=chat_row.get("created_at"),
@@ -182,30 +181,29 @@ async def create_chat(
     )
 
 
-@router.get("/{project_id}", response_model=List[ChatResponse])
-async def get_project_chats(
-    project_id: str,
+@router.get("/{thread_id}", response_model=List[ChatResponse])
+async def get_thread_chats(
+    thread_id: str,
     current_user: dict = Depends(get_current_user),
     supabase=Depends(get_supabase)
 ):
     """
-    Get all chats for a project with full results, ordered by created_at ascending.
+    Get all chats for a thread with full results, ordered by created_at ascending.
     """
-    # Verify project ownership
-    project = supabase.table("projects").select("project_id") \
-        .eq("project_id", project_id) \
-        .eq("user_id", current_user["id"]) \
+    # Verify thread ownership via project join
+    thread = supabase.table("thread").select("thread_id, projects!inner(user_id)") \
+        .eq("thread_id", thread_id) \
         .execute()
 
-    if not project.data:
+    if not thread.data or thread.data[0]["projects"]["user_id"] != current_user["id"]:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Project not found or not owned by user"
+            detail="Thread not found or not owned by user"
         )
 
-    # Fetch all chats for the project ordered by created_at
+    # Fetch all chats for the thread ordered by created_at
     chats_resp = supabase.table("chat").select("*") \
-        .eq("project_id", project_id) \
+        .eq("thread_id", thread_id) \
         .order("created_at") \
         .execute()
 
@@ -254,7 +252,7 @@ async def get_project_chats(
 
         chat_responses.append(ChatResponse(
             id=chat_id,
-            project_id=chat["project_id"],
+            thread_id=chat["thread_id"],
             query=chat["query"],
             search_terms=chat.get("search_terms"),
             created_at=chat.get("created_at"),
@@ -264,9 +262,9 @@ async def get_project_chats(
     return chat_responses
 
 
-@router.get("/{project_id}/{chat_id}", response_model=ChatResponse)
+@router.get("/{thread_id}/{chat_id}", response_model=ChatResponse)
 async def get_chat_detail(
-    project_id: str,
+    thread_id: str,
     chat_id: int,
     current_user: dict = Depends(get_current_user),
     supabase=Depends(get_supabase)
@@ -274,22 +272,21 @@ async def get_chat_detail(
     """
     Get a single chat with full results (papers, metrics, etc.).
     """
-    # Verify project ownership
-    project = supabase.table("projects").select("project_id") \
-        .eq("project_id", project_id) \
-        .eq("user_id", current_user["id"]) \
+    # Verify thread ownership via project join
+    thread = supabase.table("thread").select("thread_id, projects!inner(user_id)") \
+        .eq("thread_id", thread_id) \
         .execute()
 
-    if not project.data:
+    if not thread.data or thread.data[0]["projects"]["user_id"] != current_user["id"]:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Project not found or not owned by user"
+            detail="Thread not found or not owned by user"
         )
 
     # Fetch the chat
     chat_resp = supabase.table("chat").select("*") \
         .eq("id", chat_id) \
-        .eq("project_id", project_id) \
+        .eq("thread_id", thread_id) \
         .execute()
 
     if not chat_resp.data:
@@ -337,7 +334,7 @@ async def get_chat_detail(
 
     return ChatResponse(
         id=chat_id,
-        project_id=chat["project_id"],
+        thread_id=chat["thread_id"],
         query=chat["query"],
         search_terms=chat.get("search_terms"),
         created_at=chat.get("created_at"),

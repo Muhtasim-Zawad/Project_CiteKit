@@ -4,6 +4,7 @@ from app.db.supabase import get_supabase
 REQUIRED_TABLES = [
     "profiles",
     "projects",
+    "thread",
     "reference",
     "authors",
     "reference_authors",
