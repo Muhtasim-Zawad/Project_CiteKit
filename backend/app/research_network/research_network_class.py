@@ -43,3 +43,18 @@ class SemanticScholarPaperResponse(BaseModel):
     citations_count: int = 0
     error: Optional[str] = None
 
+class ReferenceDetailsResponse(BaseModel):
+    """Response model for format_reference_response()"""
+    success: bool
+    paper_id: Optional[str] = None
+    title: Optional[str] = None
+    year: Optional[int] = None
+    authors: Optional[List[AuthorInfo]] = None
+    abstract: Optional[str] = None
+    venue: Optional[str] = None
+    doi: Optional[str] = None
+    is_open_access: Optional[bool] = None
+    citations_count: Optional[int] = None
+    references_count: Optional[int] = None
+    influential_citations_count: Optional[int] = None
+    error: Optional[str] = None
