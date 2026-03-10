@@ -5,6 +5,9 @@ from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage
 from .Librarian_class import AgentState
 from app.config import get_settings
+from .cross__ref_agent import cross_ref_agent
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from app.db.supabase import supabase
 # -------- OpenAlex Helpers -------- #
 settings = get_settings()
 def de_invert_abstract(inverted_index):
@@ -36,12 +39,21 @@ def search_openalex(search_query: str, per_page: int = 5):
             
             raw_abstract = work.get('abstract_inverted_index')
             abstract_text = de_invert_abstract(raw_abstract)
+
+            # Extract author names from authorships
+            authorships = work.get('authorships', [])
+            author_names = ", ".join(
+                a.get('author', {}).get('display_name', '')
+                for a in authorships
+                if a.get('author', {}).get('display_name')
+            ) or None
             
             results.append({
                 'title': title,
                 'doi': doi,
                 'year': year,
-                'abstract': abstract_text
+                'abstract': abstract_text,
+                'author': author_names
             })
         
         return results
@@ -80,19 +92,61 @@ def extract_search_terms(state: AgentState) -> AgentState:
     return {**state, "search_terms": search_terms}
 
 
-from .cross__ref_agent import cross_ref_agent
-from concurrent.futures import ThreadPoolExecutor, as_completed
+def get_paper_from_db(doi: str):
+    """Fetch paper + metrics from Supabase if it exists."""
+    
+    ref = (
+        supabase.table("reference")
+        .select("*")
+        .eq("doi", doi)
+        .execute()
+    )
+
+    if not ref.data:
+        return None
+
+    paper = ref.data[0]
+
+    metrics = (
+        supabase.table("reference_metrics")
+        .select("*")
+        .eq("doi", doi)
+        .execute()
+    )
+
+    paper["dimensions_metrics"] = metrics.data[0] if metrics.data else None
+
+    return paper
 
 def _enrich_paper(paper):
-    """Enriches a single paper with cross-ref data. Designed to run in a thread."""
+
     if "error" in paper:
         return paper
-    
+
     doi = paper.get("doi")
+
     if not doi:
         return paper
 
     clean_doi = doi.replace("https://doi.org/", "")
+
+    # ---------------------------
+    # 1️⃣ Check Supabase cache
+    # ---------------------------
+    db_paper = get_paper_from_db(clean_doi)
+
+    if db_paper:
+        paper["abstract"] = db_paper.get("abstract")
+        paper["year"] = db_paper.get("year")
+        paper["author"] = db_paper.get("author")
+        paper["dimensions_metrics"] = db_paper.get("dimensions_metrics")
+
+        paper["source"] = "supabase_cache"
+        return paper
+
+    # ---------------------------
+    # 2️⃣ Otherwise call APIs
+    # ---------------------------
     cross_state = {
         "doi": clean_doi,
         "full_text": None,
@@ -101,16 +155,22 @@ def _enrich_paper(paper):
         "dimensions_metrics": None,
         "errors": []
     }
+
     try:
         cross_result = cross_ref_agent.invoke(cross_state)
+
         paper["metrics"] = cross_result.get("authors_metrics", [])
         paper["full_text"] = cross_result.get("full_text")
         paper["download_url"] = cross_result.get("download_url")
         paper["dimensions_metrics"] = cross_result.get("dimensions_metrics")
+
+        paper["source"] = "api"
+
     except Exception as e:
         paper["cross_ref_error"] = str(e)
-    
+
     return paper
+
 
 def search_papers(state: AgentState) -> AgentState:
     results = search_openalex(state["search_terms"])

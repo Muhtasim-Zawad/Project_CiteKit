@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 
@@ -20,6 +20,20 @@ class ChatResultCreate(BaseModel):
     doi: str
     score: Optional[float] = None
     critic_reasoning: Optional[str] = None
+
+
+class ChatResultResponse(BaseModel):
+    id: Optional[int] = None
+    doi: str
+    title: Optional[str] = None
+    author: Optional[str] = None
+    abstract: Optional[str] = None
+    year: Optional[int] = None
+    score: Optional[float] = None
+    critic_reasoning: Optional[str] = None
+    full_text: Optional[str] = None
+    download_url: Optional[str] = None
+    dimensions_metrics: Optional[dict] = None
 
 
 SQL_CREATE = """
