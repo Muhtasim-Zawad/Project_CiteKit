@@ -268,3 +268,36 @@ def sync_mendeley_node(state: SecretaryMendeleyAgentState) -> SecretaryMendeleyA
         "errors": errors
     }
 
+def create_secretary_zotero_agent():
+    """Create the secretary agent for syncing papers to Zotero only"""
+    
+    workflow = StateGraph(SecretaryZoteroAgentState)
+    
+    # Add nodes
+    workflow.add_node("sync_zotero", sync_zotero_node)
+    
+    # Define entry and exit points
+    workflow.set_entry_point("sync_zotero")
+    workflow.add_edge("sync_zotero", END)
+    
+    return workflow.compile()
+
+
+def create_secretary_mendeley_agent():
+    """Create the secretary agent for syncing papers to Mendeley only"""
+    
+    workflow = StateGraph(SecretaryMendeleyAgentState)
+    
+    # Add nodes
+    workflow.add_node("sync_mendeley", sync_mendeley_node)
+    
+    # Define entry and exit points
+    workflow.set_entry_point("sync_mendeley")
+    workflow.add_edge("sync_mendeley", END)
+    
+    return workflow.compile()
+
+
+# Create the compiled agents
+secretary_zotero_agent = create_secretary_zotero_agent()
+secretary_mendeley_agent = create_secretary_mendeley_agent()
