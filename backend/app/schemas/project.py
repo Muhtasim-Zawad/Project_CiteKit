@@ -21,9 +21,14 @@ class ReferenceResponse(ReferenceBase):
 
 class ProjectBase(BaseModel):
     title: str
+    description: Optional[str] = None
 
 class ProjectCreate(ProjectBase):
     pass  # user_id comes from JWT
+
+class ProjectUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
 
 class ProjectResponse(ProjectBase):
     project_id: str
@@ -38,3 +43,16 @@ class ProjectResponse(ProjectBase):
 
 class MessageResponse(BaseModel): 
     message: str
+
+
+SQL_CREATE_PROJECTS = """
+CREATE TABLE IF NOT EXISTS public.projects (
+    project_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    description TEXT,
+    summary TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+"""
