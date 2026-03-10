@@ -21,6 +21,13 @@ class ChatCreate(BaseModel):
     query: str
 
 
+class ChatMessage(BaseModel):
+    id: int
+    query: str
+    search_terms: Optional[str] = None
+    created_at: Optional[datetime] = None
+
+
 class ChatResponse(BaseModel):
     id: int
     project_id: UUID

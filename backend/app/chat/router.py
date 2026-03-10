@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 from app.db.supabase import get_supabase
 from app.auth.dependencies import get_current_user
-from app.schemas.chat import ChatCreate, ChatResponse
+from app.schemas.chat import ChatCreate, ChatResponse, ChatMessage
 from app.schemas.chat_result import ChatResultResponse
 from app.agent.Librarian_agent import agent
 
@@ -174,7 +174,7 @@ async def get_project_chats(
     supabase=Depends(get_supabase)
 ):
     """
-    Get all chats for a project, each with its chat results and paper details.
+    Get all chats for a project with full results, ordered by created_at ascending.
     """
     # Verify project ownership
     project = supabase.table("projects").select("project_id") \
@@ -188,10 +188,10 @@ async def get_project_chats(
             detail="Project not found or not owned by user"
         )
 
-    # Fetch all chats for the project
+    # Fetch all chats for the project ordered by created_at
     chats_resp = supabase.table("chat").select("*") \
         .eq("project_id", project_id) \
-        .order("created_at", desc=True) \
+        .order("created_at") \
         .execute()
 
     if not chats_resp.data:
@@ -247,3 +247,84 @@ async def get_project_chats(
         ))
 
     return chat_responses
+
+
+@router.get("/{project_id}/{chat_id}", response_model=ChatResponse)
+async def get_chat_detail(
+    project_id: str,
+    chat_id: int,
+    current_user: dict = Depends(get_current_user),
+    supabase=Depends(get_supabase)
+):
+    """
+    Get a single chat with full results (papers, metrics, etc.).
+    """
+    # Verify project ownership
+    project = supabase.table("projects").select("project_id") \
+        .eq("project_id", project_id) \
+        .eq("user_id", current_user["id"]) \
+        .execute()
+
+    if not project.data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found or not owned by user"
+        )
+
+    # Fetch the chat
+    chat_resp = supabase.table("chat").select("*") \
+        .eq("id", chat_id) \
+        .eq("project_id", project_id) \
+        .execute()
+
+    if not chat_resp.data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Chat not found"
+        )
+
+    chat = chat_resp.data[0]
+
+    # Fetch chat results with joined reference data
+    results_resp = supabase.table("chat_results").select(
+        "id, doi, score, critic_reasoning, reference(title, author, abstract, year)"
+    ).eq("chat_id", chat_id).execute()
+
+    result_items = []
+    for r in (results_resp.data or []):
+        ref = r.get("reference") or {}
+        doi = r["doi"]
+
+        # Fetch reference_metrics for this doi
+        metrics_resp = supabase.table("reference_metrics").select("*") \
+            .eq("doi", doi).execute()
+        dim_metrics = None
+        if metrics_resp.data:
+            m = metrics_resp.data[0]
+            dim_metrics = {
+                "times_cited": m.get("times_cited"),
+                "recent_citations": m.get("recent_citations"),
+                "relative_citation_ratio": m.get("relative_citation_ratio"),
+                "field_citation_ratio": m.get("field_citation_ratio"),
+            }
+
+        result_items.append(ChatResultResponse(
+            id=r.get("id"),
+            doi=doi,
+            title=ref.get("title"),
+            author=ref.get("author"),
+            abstract=ref.get("abstract"),
+            year=ref.get("year"),
+            score=r.get("score"),
+            critic_reasoning=r.get("critic_reasoning"),
+            dimensions_metrics=dim_metrics,
+        ))
+
+    return ChatResponse(
+        id=chat_id,
+        project_id=chat["project_id"],
+        query=chat["query"],
+        search_terms=chat.get("search_terms"),
+        created_at=chat.get("created_at"),
+        results=result_items,
+    )
