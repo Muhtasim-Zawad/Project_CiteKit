@@ -27,6 +27,7 @@ def research_papers(payload: ResearchRequest):
         # Prepare initial state for your LangGraph agent
         state = {
             "user_query": payload.query,
+            "expanded_queries": [payload.query],
             "search_terms": "",
             "results": []
         }

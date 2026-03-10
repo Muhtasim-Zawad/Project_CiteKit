@@ -5,6 +5,8 @@ from app.auth.dependencies import get_current_user
 from app.schemas.chat import ChatCreate, ChatResponse, ChatMessage
 from app.schemas.chat_result import ChatResultResponse
 from app.agent.Librarian_agent import agent
+from app.agent.query_expansion_agent import expand_query
+from app.services.summary import generate_and_store_summary
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
@@ -21,8 +23,8 @@ async def create_chat(
     """
     project_id = str(payload.project_id)
 
-    # 1. Verify project belongs to user
-    project = supabase.table("projects").select("project_id") \
+    # 1. Verify project belongs to user and fetch summary
+    project = supabase.table("projects").select("project_id, summary") \
         .eq("project_id", project_id) \
         .eq("user_id", current_user["id"]) \
         .execute()
@@ -33,9 +35,22 @@ async def create_chat(
             detail="Project not found or not owned by user"
         )
 
-    # 2. Run the librarian agent pipeline (search → cross-ref → critic)
+    research_summary = project.data[0].get("summary") or ""
+
+    # 2. Expand the user query using the Query Expansion Agent
+    try:
+        expanded_queries = expand_query(payload.query, research_summary)
+    except Exception:
+        expanded_queries = []
+
+    # Fall back to original query if expansion produced nothing
+    if not expanded_queries:
+        expanded_queries = [payload.query]
+
+    # 3. Run the librarian agent pipeline (search+rank → critic)
     state = {
         "user_query": payload.query,
+        "expanded_queries": expanded_queries,
         "search_terms": "",
         "results": []
     }
@@ -153,6 +168,9 @@ async def create_chat(
             download_url=download_url,
             dimensions_metrics=dimensions_metrics,
         ))
+
+    # Update project summary with all chat queries so far
+    generate_and_store_summary(supabase, str(payload.project_id))
 
     return ChatResponse(
         id=chat_id,
