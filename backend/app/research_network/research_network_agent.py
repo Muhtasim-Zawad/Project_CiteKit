@@ -6,17 +6,17 @@ from typing import Dict, List, Optional, Any
 SEMANTIC_SCHOLAR_BASE_URL = "https://api.semanticscholar.org/graph/v1"
 
 PAPER_FIELDS = [
-    "paperId", "title", "authors", "year", "abstract", "venue", "doi",
+    "paperId", "title", "authors", "year", "abstract", "venue", "externalIds",
     "references.paperId", "references.title", "references.year",
-    "references.authors", "references.doi", "references.venue",
+    "references.authors", "references.externalIds", "references.venue",
     "citations.paperId", "citations.title", "citations.year",
-    "citations.authors", "citations.doi", "citations.venue"
+    "citations.authors", "citations.externalIds", "citations.venue"
 ]
 
 REFERENCE_FIELDS = [
-    "paperId", "title", "authors", "year", "abstract", "venue", "doi",
+    "paperId", "title", "authors", "year", "abstract", "venue", "externalIds",
     "isOpenAccess", "citationCount", "referenceCount",
-    "influentialCitationCount", "publicationVenue", "externalIds"
+    "influentialCitationCount", "publicationVenue"
 ]
 
 
@@ -72,7 +72,7 @@ def fetch_paper_by_doi(doi: str) -> Dict[str, Any]:
     """Fetch paper data from Semantic Scholar using DOI (sync)."""
     try:
         clean = clean_doi(doi)
-        url = f"{SEMANTIC_SCHOLAR_BASE_URL}/paper/DOI:{urllib.parse.quote(clean)}"
+        url = f"{SEMANTIC_SCHOLAR_BASE_URL}/paper/{urllib.parse.quote(clean, safe='/')}"
         response = requests.get(url, params={"fields": ",".join(PAPER_FIELDS)}, timeout=15)
         return _handle_response(response, f"DOI: {clean}")
     except requests.exceptions.Timeout:
@@ -97,7 +97,7 @@ async def fetch_paper_by_doi_async(doi: str) -> Dict[str, Any]:
     """Fetch paper data from Semantic Scholar using DOI (async)."""
     try:
         clean = clean_doi(doi)
-        url = f"{SEMANTIC_SCHOLAR_BASE_URL}/paper/DOI:{urllib.parse.quote(clean)}"
+        url = f"{SEMANTIC_SCHOLAR_BASE_URL}/paper/{urllib.parse.quote(clean, safe='/')}"
         async with httpx.AsyncClient() as client:
             response = await client.get(url, params={"fields": ",".join(PAPER_FIELDS)}, timeout=15)
         return _handle_httpx_response(response, f"DOI: {clean}")
@@ -129,7 +129,7 @@ def format_paper_response(api_response: Dict) -> Dict[str, Any]:
         {
             "paper_id": ref.get("paperId"),
             "title": ref.get("title"),
-            "doi": ref.get("doi"),
+            "doi": (ref.get("externalIds") or {}).get("DOI"),
             "year": ref.get("year"),
             "authors": parse_authors(ref.get("authors")),
             "venue": ref.get("venue")
@@ -141,7 +141,7 @@ def format_paper_response(api_response: Dict) -> Dict[str, Any]:
         {
             "paper_id": citation.get("paperId"),
             "title": citation.get("title"),
-            "doi": citation.get("doi"),
+            "doi": (citation.get("externalIds") or {}).get("DOI"),
             "year": citation.get("year"),
             "authors": parse_authors(citation.get("authors")),
             "venue": citation.get("venue")
@@ -156,7 +156,7 @@ def format_paper_response(api_response: Dict) -> Dict[str, Any]:
         "authors": parse_authors(api_response.get("authors")),
         "abstract": api_response.get("abstract"),
         "venue": api_response.get("venue"),
-        "doi": api_response.get("doi"),
+        "doi": (api_response.get("externalIds") or {}).get("DOI"),
         "references": references or None,
         "citations": citations or None,
         "references_count": len(references),
@@ -176,7 +176,7 @@ def format_reference_response(api_response: Dict) -> Dict[str, Any]:
         "authors": parse_authors(api_response.get("authors")),
         "abstract": api_response.get("abstract"),
         "venue": api_response.get("venue"),
-        "doi": api_response.get("doi"),
+        "doi": (api_response.get("externalIds") or {}).get("DOI"),
         "is_open_access": api_response.get("isOpenAccess"),
         "citations_count": api_response.get("citationCount"),
         "references_count": api_response.get("referenceCount"),
