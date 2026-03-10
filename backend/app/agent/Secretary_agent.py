@@ -151,3 +151,120 @@ def sync_zotero_node(state: SecretaryZoteroAgentState) -> SecretaryZoteroAgentSt
     }
 
 
+def push_to_mendeley(
+    paper: Dict[str, Any],
+    access_token: str,
+    tags: Optional[List[str]] = None
+) -> Dict[str, Any]:
+    """
+    Push a paper to Mendeley using their API.
+    
+    Args:
+        paper: Paper data containing title, author, DOI, abstract, year
+        access_token: Mendeley API access token
+        tags: Optional list of tags to attach
+    
+    Returns:
+        Dict with success status and Mendeley document ID
+    """
+    try:
+        # Mendeley API endpoint
+        base_url = "https://api.mendeley.com/documents"
+        
+        # Build document data
+        doc_data = {
+            "title": paper.get("title", ""),
+            "abstract": paper.get("abstract", ""),
+            "year": paper.get("year"),
+            "type": "journal"
+        }
+        
+        # Add DOI if available
+        if paper.get("doi"):
+            doc_data["identifiers"] = {
+                "doi": paper["doi"].replace("https://doi.org/", "")
+            }
+        
+        # Add authors
+        if paper.get("author"):
+            authors = paper["author"].split(",")
+            doc_data["authors"] = [
+                {"firstName": name.strip().split()[0] if name.strip().split() else "",
+                 "lastName": " ".join(name.strip().split()[1:]) if len(name.strip().split()) > 1 else name.strip()}
+                for name in authors
+                if name.strip()
+            ]
+        
+        # Add tags/keywords
+        if tags:
+            doc_data["keywords"] = tags
+        
+        # Prepare request
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+        
+        # Create the document
+        response = requests.post(
+            base_url,
+            json=doc_data,
+            headers=headers,
+            timeout=10
+        )
+        
+        if response.status_code in [200, 201]:
+            response_data = response.json()
+            mendeley_id = response_data.get("id", "unknown")
+            
+            return {
+                "success": True,
+                "mendeley_id": mendeley_id,
+                "message": f"Successfully pushed to Mendeley with ID {mendeley_id}",
+                "error": None
+            }
+        else:
+            error_msg = f"Mendeley API returned status {response.status_code}: {response.text}"
+            return {
+                "success": False,
+                "mendeley_id": None,
+                "message": "Failed to push to Mendeley",
+                "error": error_msg
+            }
+    
+    except Exception as e:
+        return {
+            "success": False,
+            "mendeley_id": None,
+            "message": "Failed to push to Mendeley",
+            "error": str(e)
+        }
+
+def sync_mendeley_node(state: SecretaryMendeleyAgentState) -> SecretaryMendeleyAgentState:
+    """Sync paper data to Mendeley platform only"""
+    
+    paper_data = state["paper_data"]
+    errors = state.get("errors", [])
+    mendeley_result = None
+    
+    try:
+        mendeley_creds = paper_data.get("mendeley_credentials")
+        
+        if not mendeley_creds or "access_token" not in mendeley_creds:
+            errors.append("Mendeley credentials missing (access token required)")
+        else:
+            mendeley_result = push_to_mendeley(
+                paper_data,
+                mendeley_creds["access_token"],
+                tags=paper_data.get("tags")
+            )
+    
+    except Exception as e:
+        errors.append(f"Mendeley sync error: {str(e)}")
+    
+    return {
+        **state,
+        "mendeley_result": mendeley_result,
+        "errors": errors
+    }
+
