@@ -127,7 +127,7 @@ def _enrich_paper(paper):
     # ---------------------------
     db_paper = get_paper_from_db(clean_doi)
 
-    if db_paper:
+    if db_paper and db_paper.get("dimensions_metrics"):
         paper["abstract"] = db_paper.get("abstract")
         paper["year"] = db_paper.get("year")
         paper["author"] = db_paper.get("author")
