@@ -345,3 +345,46 @@ async def get_project(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error fetching project: {str(e)}"
         )
+
+@router.post("/{project_id}/add-reference/{doi:path}", response_model=MessageResponse)
+async def link_reference_to_project(
+    project_id: str,
+    doi: str,
+    current_user: dict = Depends(get_current_user),
+    supabase=Depends(get_supabase)
+):
+    """
+    Link an existing reference to a project using DOI.
+    Only inserts into project_reference table.
+    """
+
+    try:
+        project = supabase.table("projects").select("project_id") \
+            .eq("project_id", project_id) \
+            .eq("user_id", current_user["id"]) \
+            .execute()
+
+        if not project.data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Project not found or not owned by user"
+            )
+
+        doi = doi.replace("https://doi.org/", "").strip().lower()
+
+        supabase.table("project_reference").upsert({
+            "project_id": project_id,
+            "doi": doi,
+            "add_time": datetime.now(timezone.utc).isoformat()
+        }).execute()
+
+        return MessageResponse(
+            message=f"Reference {doi} linked to project {project_id}"
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error linking reference: {str(e)}"
+        )
+    

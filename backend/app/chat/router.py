@@ -77,6 +77,7 @@ async def create_chat(
         if not doi:
             continue
 
+        doi = doi.replace("https://doi.org/", "").strip().lower()
         title = paper.get("title", "Untitled")
         abstract = paper.get("abstract")
         year = paper.get("year")
@@ -112,15 +113,6 @@ async def create_chat(
 
         supabase.table("reference").upsert(ref_data).execute()
 
-        # 4b. Link reference to project (ignore duplicate)
-        try:
-            supabase.table("project_reference").upsert({
-                "project_id": project_id,
-                "doi": doi,
-            }).execute()
-        except Exception:
-            pass  # already linked
-
         # 4c. Create chat_result entry
         chat_result_data = {
             "chat_id": chat_id,
@@ -129,7 +121,12 @@ async def create_chat(
             "critic_reasoning": critic_reasoning,
         }
         cr_resp = supabase.table("chat_results").insert(chat_result_data).execute()
-        chat_result_id = cr_resp.data[0]["id"] if cr_resp.data else None
+        if not cr_resp.data:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to create chat result entry"
+            )
+        chat_result_id = cr_resp.data[0]["id"]
 
         # 4d. Upsert reference_metrics (from dimensions_metrics)
         if dimensions_metrics:
