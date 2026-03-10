@@ -7,3 +7,4 @@ from .reference_metrics import *
 from .project_reference import *
 from .chat import *
 from .chat_result import *
+from .thread import *
