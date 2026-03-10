@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Camera, X } from "lucide-react";
+import api from "@/api";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import { cn } from "@/lib/utils";
 
 const SettingsProfile1 = ({
 	defaultValues = {
+		id: "",
 		name: "Alex Morgan",
 		email: "alex.morgan@email.com",
 		username: "alexmorgan",
@@ -35,10 +37,15 @@ const SettingsProfile1 = ({
 	},
 
 	className,
+	onSave,
 }) => {
 	const [avatarFiles, setAvatarFiles] = useState([]);
+	const [name, setName] = useState(defaultValues.name);
+	const [email, setEmail] = useState(defaultValues.email);
+	const [loading, setLoading] = useState(false);
+	const [message, setMessage] = useState({ type: "", text: "" });
 
-	const initials = defaultValues.name
+	const initials = name
 		?.split(" ")
 		.map((n) => n[0])
 		.join("")
@@ -50,6 +57,41 @@ const SettingsProfile1 = ({
 			? URL.createObjectURL(avatarFiles[0])
 			: defaultValues.avatar;
 
+	const handleSave = async () => {
+		setMessage({ type: "", text: "" });
+		setLoading(true);
+
+		try {
+			// Update user profile
+			const updateData = {};
+			if (name !== defaultValues.name) {
+				updateData.name = name;
+			}
+
+			if (Object.keys(updateData).length === 0 && avatarFiles.length === 0) {
+				setMessage({ type: "info", text: "No changes to save" });
+				setLoading(false);
+				return;
+			}
+
+			if (Object.keys(updateData).length > 0) {
+				await api.put("/users/me", updateData);
+			}
+
+			setMessage({ type: "success", text: "Profile updated successfully!" });
+			setTimeout(() => {
+				setMessage({ type: "", text: "" });
+				onSave?.();
+			}, 1500);
+		} catch (error) {
+			const errorMsg =
+				error.response?.data?.detail || "Failed to update profile";
+			setMessage({ type: "error", text: errorMsg });
+		} finally {
+			setLoading(false);
+		}
+	};
+
 	return (
 		<Card className={cn("w-full", className)}>
 			<CardHeader>
@@ -59,6 +101,19 @@ const SettingsProfile1 = ({
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-6">
+				{message.text && (
+					<div
+						className={`p-3 rounded-lg text-sm ${
+							message.type === "success"
+								? "bg-green-50 border border-green-200 text-green-700"
+								: message.type === "error"
+									? "bg-red-50 border border-red-200 text-red-700"
+									: "bg-blue-50 border border-blue-200 text-blue-700"
+						}`}
+					>
+						{message.text}
+					</div>
+				)}
 				{/* Avatar Upload */}
 				<FileUpload
 					value={avatarFiles}
@@ -125,24 +180,25 @@ const SettingsProfile1 = ({
 					)}
 				</FileUpload>
 
-				<div className="grid gap-4 sm:grid-cols-2">
-					<div className="space-y-2">
-						<Label htmlFor="name">Full Name</Label>
-						<Input
-							id="name"
-							placeholder="Enter your name"
-							defaultValue={defaultValues.name}
-						/>
-					</div>
-					<div className="space-y-2">
+				{/* <div className="grid gap-4 sm:grid-cols-2"> */}
+				<div className="space-y-2">
+					<Label htmlFor="name">Full Name</Label>
+					<Input
+						id="name"
+						placeholder="Enter your name"
+						value={name}
+						onChange={(e) => setName(e.target.value)}
+					/>
+				</div>
+				{/* <div className="space-y-2">
 						<Label htmlFor="username">Username</Label>
 						<Input
 							id="username"
 							placeholder="Enter username"
 							defaultValue={defaultValues.username}
 						/>
-					</div>
-				</div>
+					</div> */}
+				{/* </div> */}
 
 				<div className="space-y-2">
 					<Label htmlFor="email">Email</Label>
@@ -150,11 +206,16 @@ const SettingsProfile1 = ({
 						id="email"
 						type="email"
 						placeholder="Enter your email"
-						defaultValue={defaultValues.email}
+						value={email}
+						disabled
+						className="bg-muted cursor-not-allowed"
 					/>
+					<p className="text-xs text-muted-foreground">
+						Email cannot be changed. Contact support for email changes.
+					</p>
 				</div>
 
-				<div className="space-y-2">
+				{/* <div className="space-y-2">
 					<Label htmlFor="bio">Bio</Label>
 					<Textarea
 						id="bio"
@@ -165,11 +226,15 @@ const SettingsProfile1 = ({
 					<p className="text-xs text-muted-foreground">
 						Brief description for your profile. Max 160 characters.
 					</p>
-				</div>
+				</div> */}
 			</CardContent>
 			<CardFooter className="flex justify-end gap-2">
-				<Button variant="outline">Cancel</Button>
-				<Button>Save Changes</Button>
+				<Button variant="outline" disabled={loading}>
+					Cancel
+				</Button>
+				<Button onClick={handleSave} disabled={loading}>
+					{loading ? "Saving..." : "Save Changes"}
+				</Button>
 			</CardFooter>
 		</Card>
 	);

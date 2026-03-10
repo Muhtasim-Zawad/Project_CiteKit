@@ -1,6 +1,8 @@
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import api from "@/api";
 import {
 	IconCamera,
 	IconChartBar,
@@ -197,7 +199,7 @@ const workspaceData = {
 };
 
 // Settings Modal Component
-const SettingsModal = ({ isOpen, onClose, user }) => {
+const SettingsModal = ({ isOpen, onClose, user, onSave }) => {
 	return (
 		<Dialog open={isOpen} onOpenChange={onClose}>
 			<DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 [&>button:last-child]:hidden">
@@ -212,13 +214,14 @@ const SettingsModal = ({ isOpen, onClose, user }) => {
 					</div>
 					<SettingsProfile1
 						defaultValues={{
+							id: user.id,
 							name: user.name,
 							email: user.email,
-							username: user.name.toLowerCase().replace(/\s+/g, ""),
+							username: user.name?.toLowerCase().replace(/\s+/g, "") || "",
 							avatar: user.avatar,
-							bio: "Update your profile information here.",
 						}}
 						className="border-0 shadow-none"
+						onSave={onSave}
 					/>
 				</div>
 			</DialogContent>
@@ -228,11 +231,71 @@ const SettingsModal = ({ isOpen, onClose, user }) => {
 
 export function AppSidebar({ ...props }) {
 	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+	const [currentUser, setCurrentUser] = useState(null);
+	const [recentProjects, setRecentProjects] = useState([]);
+	const [loadingProjects, setLoadingProjects] = useState(true);
 	const { setActiveView, activeView } = useView();
+	const { user: authUser } = useAuth();
 	const location = useLocation();
 	const isWorkspace = location.pathname.includes("/workspace");
 
-	const data = isWorkspace ? workspaceData : defaultData;
+	useEffect(() => {
+		fetchUserData();
+		fetchRecentProjects();
+	}, []);
+
+	const fetchUserData = async () => {
+		try {
+			const response = await api.get("/users/me");
+			setCurrentUser(response.data);
+		} catch (error) {
+			console.error("Failed to fetch user data:", error);
+			if (authUser) {
+				setCurrentUser({
+					id: authUser.id,
+					name: authUser.name,
+					email: authUser.email,
+				});
+			}
+		}
+	};
+
+	const fetchRecentProjects = async () => {
+		setLoadingProjects(true);
+		try {
+			const response = await api.get("/projects/recent");
+			const projects = response.data.map((project) => ({
+				name: project.title,
+				url: `#`,
+				icon: IconFileDescription,
+				id: project.project_id,
+			}));
+			setRecentProjects(projects);
+		} catch (error) {
+			console.error("Failed to fetch recent projects:", error);
+			setRecentProjects([]);
+		} finally {
+			setLoadingProjects(false);
+		}
+	};
+
+	const user = currentUser || authUser || defaultData.user;
+	const documents = isWorkspace
+		? []
+		: recentProjects.length > 0
+			? recentProjects
+			: defaultData.documents;
+
+	const data = isWorkspace
+		? {
+				...workspaceData,
+				user,
+			}
+		: {
+				...defaultData,
+				user,
+				documents,
+			};
 
 	const handleNavClick = (viewType) => {
 		if (viewType) {
@@ -257,7 +320,7 @@ export function AppSidebar({ ...props }) {
 					</SidebarMenuItem>
 				</SidebarMenu>
 			</SidebarHeader>
-			<SidebarContent>
+			<SidebarContent className="flex flex-col">
 				<NavMain
 					items={data.navMain}
 					onItemClick={handleNavClick}
@@ -265,9 +328,14 @@ export function AppSidebar({ ...props }) {
 					activeView={activeView}
 				/>
 				{isWorkspace ? (
-					<NavDocuments items={data.chats} title="Recent Chats" />
+					<NavDocuments items={data.chats} title="Recent Chats" isScrollable />
 				) : (
-					<NavDocuments items={data.documents} />
+					<NavDocuments
+						items={data.documents}
+						title="Recent Projects"
+						isScrollable
+						isLoading={loadingProjects}
+					/>
 				)}
 				<NavSecondary
 					items={data.navSecondary}
@@ -285,6 +353,10 @@ export function AppSidebar({ ...props }) {
 				isOpen={isSettingsOpen}
 				onClose={() => setIsSettingsOpen(false)}
 				user={data.user}
+				onSave={() => {
+					fetchUserData();
+					setIsSettingsOpen(false);
+				}}
 			/>
 		</Sidebar>
 	);
