@@ -38,3 +38,28 @@ def get_paper_by_doi(doi: str = Query(..., description="DOI of the paper, e.g. 1
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch paper data: {str(e)}")
+
+@router.get("/reference-details", response_model=ReferenceDetailsResponse)
+def get_reference_details(paper_id: str = Query(..., description="Semantic Scholar paper ID")):
+    """
+    Fetch detailed reference information from Semantic Scholar by paper ID.
+    Returns metadata including citation counts and open access status.
+    """
+    try:
+        api_result = fetch_reference_details(paper_id)
+
+        if not api_result["success"]:
+            return ReferenceDetailsResponse(
+                success=False,
+                error=api_result.get("error", "Failed to fetch reference from Semantic Scholar")
+            )
+
+        formatted_data = format_reference_response(api_result["data"])
+
+        return ReferenceDetailsResponse(
+            success=True,
+            **formatted_data
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch reference details: {str(e)}")
