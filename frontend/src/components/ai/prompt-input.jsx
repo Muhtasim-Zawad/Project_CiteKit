@@ -15,7 +15,7 @@ import {
 	PromptInputSubmit,
 } from "@/components/ai-elements/prompt-input";
 import { MessageSquare, BookOpen, Quote } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -118,8 +118,8 @@ const PaperCard = ({ paper, onSelect }) => {
 					>
 						<Quote className="h-3 w-3 mr-1" /> {paper.citations}
 					</Button>
-					<Button className="ml-auto bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2">
-						Add
+					<Button className="h-7 ml-auto bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1">
+						Save
 					</Button>
 				</div>
 			</div>
@@ -135,7 +135,7 @@ const PaperModal = ({ paper, isOpen, onClose }) => {
 		<Dialog open={isOpen} onOpenChange={onClose}>
 			<DialogContent
 				showCloseButton={false}
-				className="max-w-2xl max-h-[90vh] overflow-y-auto via-card bg-background"
+				className="w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl max-h-[90vh] overflow-y-auto via-card bg-background"
 			>
 				<div className="space-y-6 py-4">
 					<DialogHeader className="space-y-4">
@@ -214,12 +214,18 @@ const PaperModal = ({ paper, isOpen, onClose }) => {
 							<BookOpen className="h-4 w-4 mr-2" /> View Paper
 						</Button>
 						<Button variant="outline" className="flex-1">
-							<Quote className="h-4 w-4 mr-2" /> Citations
+							<Quote className="h-4 w-4 mr-2" /> Citations Map
 						</Button>
 						<Button variant="secondary" className="flex-1">
 							+ Add
 						</Button>
 					</div>
+					{/* <BookOpen className="h-4 w-4 mr-2" /> View Full Paper
+						</Button>
+						<Button variant="secondary" className="flex-1">
+							<MessageSquare className="h-4 w-4 mr-2" /> Open in Chat
+						</Button>
+					</div> */}
 				</div>
 			</DialogContent>
 		</Dialog>
@@ -232,7 +238,7 @@ const PaperResults = ({ papers }) => {
 
 	return (
 		<>
-			<div className="grid grid-cols-1 gap-3 py-2 max-w-2xl">
+			<div className="grid grid-cols-1 gap-3 py-2 max-w-4xl">
 				{papers.map((paper) => (
 					<PaperCard key={paper.id} paper={paper} onSelect={setSelectedPaper} />
 				))}
@@ -250,6 +256,19 @@ const ConversationDemo = () => {
 	const [input, setInput] = useState("");
 	const [messages, setMessages] = useState([]);
 	const [status, setStatus] = useState("ready");
+	const textareaRef = useRef(null);
+
+	useEffect(() => {
+		if (textareaRef.current) {
+			textareaRef.current.style.height = "auto";
+			const newHeight = Math.min(textareaRef.current.scrollHeight, 300);
+			textareaRef.current.style.height = `${newHeight}px`;
+		}
+	}, [input]);
+
+	const handleInputChange = (e) => {
+		setInput(e.currentTarget.value);
+	};
 
 	const handleSubmit = (e) => {
 		if (e?.preventDefault) e.preventDefault();
@@ -290,7 +309,7 @@ const ConversationDemo = () => {
 	};
 
 	return (
-		<div className="mx-auto p-6 relative w-full h-auto rounded-b-lg border">
+		<div className="mx-auto p-6 relative w-full h-full rounded-b-lg border">
 			<div className="flex flex-col h-full">
 				<Conversation>
 					<ConversationContent>
@@ -341,9 +360,15 @@ const ConversationDemo = () => {
 					className="mt-4 w-full max-w-2xl mx-auto relative"
 				>
 					<PromptInputTextarea
+						ref={textareaRef}
 						value={input}
 						placeholder="Search papers, ask about research topics..."
-						onChange={(e) => setInput(e.currentTarget.value)}
+						onChange={handleInputChange}
+						style={{
+							resize: "none",
+							overflow: "hidden",
+							maxHeight: "200px",
+						}}
 						className="pr-12"
 					/>
 					<PromptInputSubmit
