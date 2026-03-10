@@ -1,8 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from .research_network_class import (
-    SemanticScholarByDOIRequest,
     SemanticScholarPaperResponse,
-    SemanticScholarByPaperIDRequest,
     ReferenceDetailsResponse
 )
 from .research_network_agent import (
@@ -15,19 +13,19 @@ from .research_network_agent import (
 router = APIRouter(prefix="/research-network", tags=["Semantic Scholar"])
 
 
-@router.post("/by-doi", response_model=SemanticScholarPaperResponse)
-def get_paper_by_doi(payload: SemanticScholarByDOIRequest):
+@router.get("/by-doi", response_model=SemanticScholarPaperResponse)
+def get_paper_by_doi(doi: str = Query(..., description="DOI of the paper, e.g. 10.1234/xyz")):
     """
     Fetch paper data from Semantic Scholar by DOI.
     Returns paper metadata along with citations and references.
     """
     try:
-        api_result = fetch_paper_by_doi(payload.doi)
+        api_result = fetch_paper_by_doi(doi)
 
         if not api_result["success"]:
             return SemanticScholarPaperResponse(
                 success=False,
-                doi=payload.doi,
+                doi=doi,
                 error=api_result.get("error", "Failed to fetch paper from Semantic Scholar")
             )
 
