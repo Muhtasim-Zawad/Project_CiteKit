@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from app.db.supabase import get_supabase
 from app.schemas import ProjectCreate, ProjectUpdate, ProjectResponse, ProjectSummary, ReferenceCreate, ReferenceResponse, MessageResponse
 from app.auth.dependencies import get_current_user
+from app.schemas.chat_result import ChatResultResponse
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -388,3 +389,63 @@ async def link_reference_to_project(
             detail=f"Error linking reference: {str(e)}"
         )
     
+@router.get("/{project_id}/references", response_model=List[ChatResultResponse])
+async def get_project_references(
+    project_id: str,
+    current_user: dict = Depends(get_current_user),
+    supabase=Depends(get_supabase)
+):
+    """
+    Get all references for a project with full details
+    including score, critic reasoning, metrics, full text, download url.
+    """
+    # Verify project ownership
+    project_resp = supabase.table("projects").select("*") \
+        .eq("project_id", project_id) \
+        .eq("user_id", current_user["id"]).execute()
+
+    if not project_resp.data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found or not owned by user"
+        )
+
+    # Fetch all references linked to this project
+    project_refs_resp = supabase.table("project_reference").select(
+        """
+        doi,
+        add_time,
+        chat_results(
+            id,
+            score,
+            critic_reasoning,
+            full_text,
+            download_url,
+            dimensions_metrics,
+            reference(title, author, abstract, year)
+        )
+        """
+    ).eq("project_id", project_id).execute()
+
+    references = []
+
+    for item in (project_refs_resp.data or []):
+        # Each project_reference can have multiple chat_results
+        chat_results = item.get("chat_results") or []
+        for r in chat_results:
+            ref = r.get("reference") or {}
+            references.append(ChatResultResponse(
+                id=r.get("id"),
+                doi=item["doi"],
+                title=ref.get("title"),
+                author=ref.get("author"),
+                abstract=ref.get("abstract"),
+                year=ref.get("year"),
+                score=r.get("score"),
+                critic_reasoning=r.get("critic_reasoning"),
+                full_text=r.get("full_text"),
+                download_url=r.get("download_url"),
+                dimensions_metrics=r.get("dimensions_metrics")
+            ))
+
+    return references
