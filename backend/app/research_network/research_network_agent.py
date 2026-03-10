@@ -67,3 +67,27 @@ def _handle_httpx_response(response: httpx.Response, identifier: str) -> Dict[st
         "data": None,
         "error": f"Semantic Scholar error {response.status_code}: {response.text[:200]}"
     }
+
+def fetch_paper_by_doi(doi: str) -> Dict[str, Any]:
+    """Fetch paper data from Semantic Scholar using DOI (sync)."""
+    try:
+        clean = clean_doi(doi)
+        url = f"{SEMANTIC_SCHOLAR_BASE_URL}/paper/DOI:{urllib.parse.quote(clean)}"
+        response = requests.get(url, params={"fields": ",".join(PAPER_FIELDS)}, timeout=15)
+        return _handle_response(response, f"DOI: {clean}")
+    except requests.exceptions.Timeout:
+        return {"success": False, "data": None, "error": "Semantic Scholar request timed out"}
+    except Exception as e:
+        return {"success": False, "data": None, "error": str(e)}
+
+
+def fetch_reference_details(paper_id: str) -> Dict[str, Any]:
+    """Fetch detailed information for a paper by Semantic Scholar ID (sync)."""
+    try:
+        url = f"{SEMANTIC_SCHOLAR_BASE_URL}/paper/{paper_id}"
+        response = requests.get(url, params={"fields": ",".join(REFERENCE_FIELDS)}, timeout=15)
+        return _handle_response(response, f"ID: {paper_id}")
+    except requests.exceptions.Timeout:
+        return {"success": False, "data": None, "error": "Semantic Scholar request timed out"}
+    except Exception as e:
+        return {"success": False, "data": None, "error": str(e)}
