@@ -5,6 +5,7 @@ from app.auth.dependencies import get_current_user
 from app.schemas.chat import ChatCreate, ChatResponse, ChatMessage
 from app.schemas.chat_result import ChatResultResponse
 from app.agent.Librarian_agent import agent
+from app.services.summary import generate_and_store_summary
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
@@ -153,6 +154,9 @@ async def create_chat(
             download_url=download_url,
             dimensions_metrics=dimensions_metrics,
         ))
+
+    # Update project summary with all chat queries so far
+    generate_and_store_summary(supabase, str(payload.project_id))
 
     return ChatResponse(
         id=chat_id,
