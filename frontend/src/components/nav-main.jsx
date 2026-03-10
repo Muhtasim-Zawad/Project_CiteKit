@@ -11,7 +11,13 @@ import {
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-export function NavMain({ items, onItemClick, isWorkspace, activeView }) {
+export function NavMain({
+	items,
+	onItemClick,
+	isWorkspace,
+	activeView,
+	onCreateThread,
+}) {
 	const navigate = useNavigate();
 	const openProject = () => {
 		// navigate(`/workspace/${projectId}`);
@@ -19,8 +25,9 @@ export function NavMain({ items, onItemClick, isWorkspace, activeView }) {
 	};
 
 	const handleNewChat = () => {
-		// TODO: Implement new chat creation
-		console.log("New chat creation");
+		if (onCreateThread) {
+			onCreateThread();
+		}
 	};
 
 	return (

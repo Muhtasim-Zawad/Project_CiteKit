@@ -22,8 +22,9 @@ export default function SavedPapersPanel({ projectId }) {
 			setLoading(true);
 			setError(null);
 			try {
-				const response = await api.get(`/projects/${projectId}/references`);
-				setSavedPapers(response.data || []);
+				const response = await api.get(`/projects/${projectId}`);
+				// Parse references from the project response
+				setSavedPapers(response.data.references || []);
 			} catch (err) {
 				console.error("Error fetching papers:", err);
 				setError(err.response?.data?.detail || "Failed to load saved papers");
@@ -104,18 +105,6 @@ export default function SavedPapersPanel({ projectId }) {
 										<p className="text-xs text-muted-foreground line-clamp-3">
 											{paper.abstract || "No abstract available"}
 										</p>
-
-										{/* Score Badge */}
-										{paper.score && (
-											<div className="flex items-center gap-2 pt-1">
-												<Badge
-													variant="outline"
-													className="text-xs bg-blue-50 text-blue-700 border-blue-200"
-												>
-													Score: {paper.score.toFixed(2)}
-												</Badge>
-											</div>
-										)}
 
 										{/* Buttons */}
 										<div className="flex justify-end gap-2 pt-2">

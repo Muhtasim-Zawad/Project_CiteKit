@@ -4,14 +4,24 @@ const ViewContext = createContext();
 
 export function ViewProvider({ children }) {
 	const [activeView, setActiveView] = useState("projects");
+	const [selectedThreadId, setSelectedThreadId] = useState(null);
 
 	const handleSetActiveView = (view) => {
 		setActiveView(view);
 	};
 
+	const handleSetSelectedThread = (threadId) => {
+		setSelectedThreadId(threadId);
+	};
+
 	return (
 		<ViewContext.Provider
-			value={{ activeView, setActiveView: handleSetActiveView }}
+			value={{
+				activeView,
+				setActiveView: handleSetActiveView,
+				selectedThreadId,
+				setSelectedThreadId: handleSetSelectedThread,
+			}}
 		>
 			{children}
 		</ViewContext.Provider>

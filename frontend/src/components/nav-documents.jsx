@@ -29,6 +29,7 @@ export function NavDocuments({
 	title = "Recent Projects",
 	isScrollable = false,
 	isLoading = false,
+	onItemClick = null,
 }) {
 	const { isMobile } = useSidebar();
 
@@ -61,10 +62,13 @@ export function NavDocuments({
 				{items.map((item) => (
 					<SidebarMenuItem key={item.name}>
 						<SidebarMenuButton asChild>
-							<a href={item.url}>
+							<button
+								onClick={() => onItemClick?.(item)}
+								className="w-full flex items-center gap-2 px-2 py-1.5 text-left"
+							>
 								<item.icon />
 								<span>{item.name}</span>
-							</a>
+							</button>
 						</SidebarMenuButton>
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>

@@ -14,7 +14,7 @@ import {
 	PromptInputTextarea,
 	PromptInputSubmit,
 } from "@/components/ai-elements/prompt-input";
-import { MessageSquare, BookOpen, Quote } from "lucide-react";
+import { MessageSquare, BookOpen, Quote, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,100 +26,74 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { X } from "lucide-react";
-
-// Mock paper data
-const MOCK_PAPERS = [
-	{
-		id: 1,
-		title: "Attention Is All You Need",
-		authors: ["Ashish Vaswani", "Noam Shazeer", "Parmar Aditya"],
-		year: 2017,
-		abstract:
-			"The dominant sequence transduction models are based on complex recurrent or convolutional neural networks. In an encoder-decoder configuration. The best performing models also connect the encoder and decoder through an attention mechanism. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely.",
-		citations: 89542,
-	},
-	{
-		id: 2,
-		title: "BERT: Pre-training of Deep Bidirectional Transformers",
-		authors: ["Jacob Devlin", "Ming-Wei Chang", "Kenton Lee"],
-		year: 2018,
-		abstract:
-			"We introduce BERT, a new method of pre-training language representations from raw text. Unlike previous methods, BERT is designed to pre-train deep bidirectional representations by jointly conditioning on both left and right context in all layers.",
-		citations: 76123,
-	},
-	{
-		id: 3,
-		title: "Language Models are Unsupervised Multitask Learners",
-		authors: ["Alec Radford", "Jeffrey Wu", "Rewon Child"],
-		year: 2019,
-		abstract:
-			"Natural language processing tasks are typically approached with supervised learning on task-specific datasets. We demonstrate that language models begin to learn these tasks without any explicit supervision when trained on a new dataset of millions of webpages.",
-		citations: 45678,
-	},
-	{
-		id: 4,
-		title:
-			"Neural Machine Translation by Jointly Learning to Align and Translate",
-		authors: ["Dzmitry Bahdanau", "Kyungyoon Cho", "Yoshua Bengio"],
-		year: 2014,
-		abstract:
-			"Most neural machine translation systems work on a fixed-length context vector, or 'thought vector', onto which the entire input sentence must be compressed. We conjecture that the use of a fixed-length vector is a bottleneck in improving the performance.",
-		citations: 34521,
-	},
-	{
-		id: 5,
-		title: "ImageNet-21K Pretraining for the Masses",
-		authors: ["Tal Ridnik", "Emanuel Ben Baruch", "Asaf Noy"],
-		year: 2021,
-		abstract:
-			"ImageNet-21K pretraining has been used to achieve state-of-the-art results on many visual recognition tasks. However, its adoption remains limited to practitioners with access to large computational resources. We investigate how to enable efficient pretraining on ImageNet-21K.",
-		citations: 12345,
-	},
-];
+import { useParams } from "react-router-dom";
+import api from "@/api";
+import { useView } from "@/context/ViewContext";
 
 // Paper Card Component
-const PaperCard = ({ paper, onSelect }) => {
+const PaperCard = ({ paper, onSelect, onSave, isSaving }) => {
 	const truncatedAbstract =
-		paper.abstract.length > 120
+		paper.abstract && paper.abstract.length > 120
 			? paper.abstract.substring(0, 120) + "..."
-			: paper.abstract;
+			: paper.abstract || "No abstract available";
 
 	return (
-		<div
-			onClick={() => onSelect(paper)}
-			className="group relative overflow-hidden bg-gradient-to-br from-primary/5 via-card to-background backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:from-primary/10 border border-primary/20 rounded-lg p-4 cursor-pointer"
-		>
+		<div className="group relative overflow-hidden bg-gradient-to-br from-primary/5 via-card to-background backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:from-primary/10 border border-primary/20 rounded-lg p-4 cursor-pointer">
 			<div className="space-y-3">
 				<div>
 					<h3 className="font-bold text-sm leading-tight line-clamp-2 text-foreground group-hover:text-primary transition-colors">
-						{paper.title}
+						{paper.title || "Untitled"}
 					</h3>
-					<Badge className="mt-2 bg-primary/10 text-primary border-primary/20">
-						{paper.year}
-					</Badge>
+					{paper.year && (
+						<Badge className="mt-2 bg-primary/10 text-primary border-primary/20">
+							{paper.year}
+						</Badge>
+					)}
 				</div>
 
 				<p className="text-xs text-muted-foreground line-clamp-3">
 					{truncatedAbstract}
 				</p>
 
+				{paper.score && (
+					<div className="flex items-center gap-2 mb-2">
+						<Badge
+							variant="outline"
+							className="text-xs bg-green-50 text-green-700 border-green-200"
+						>
+							Relevance: {paper.score.toFixed(2)}
+						</Badge>
+					</div>
+				)}
+
 				<div className="flex gap-2 pt-2">
 					<Button
 						size="xs"
 						variant="ghost"
 						className="h-7 text-xs hover:bg-primary/10 hover:text-primary"
+						onClick={(e) => {
+							e.stopPropagation();
+							onSelect?.(paper);
+						}}
 					>
 						<BookOpen className="h-3 w-3 mr-1" /> View
 					</Button>
 					<Button
-						size="xs"
-						variant="ghost"
-						className="h-7 text-xs hover:bg-secondary/10 hover:text-secondary"
+						className="h-7 ml-auto bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1 text-xs disabled:opacity-50"
+						disabled={isSaving}
+						onClick={(e) => {
+							e.stopPropagation();
+							onSave?.(paper);
+						}}
 					>
-						<Quote className="h-3 w-3 mr-1" /> {paper.citations}
-					</Button>
-					<Button className="h-7 ml-auto bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1">
-						Save
+						{isSaving ? (
+							<>
+								<Loader2 className="h-3 w-3 mr-1 animate-spin" />
+								Saving...
+							</>
+						) : (
+							"+ Save"
+						)}
 					</Button>
 				</div>
 			</div>
@@ -142,11 +116,13 @@ const PaperModal = ({ paper, isOpen, onClose }) => {
 						<div className="flex items-start justify-between gap-4">
 							<div className="flex-1">
 								<DialogTitle className="text-2xl font-bold text-foreground">
-									{paper.title}
+									{paper.title || "Untitled"}
 								</DialogTitle>
-								<Badge className="mt-3 bg-primary/10 text-primary border-primary/20 text-sm">
-									{paper.year}
-								</Badge>
+								{paper.year && (
+									<Badge className="mt-3 bg-primary/10 text-primary border-primary/20 text-sm">
+										{paper.year}
+									</Badge>
+								)}
 							</div>
 							<DialogClose asChild>
 								<Button
@@ -160,72 +136,79 @@ const PaperModal = ({ paper, isOpen, onClose }) => {
 						</div>
 					</DialogHeader>
 
-					{/* Authors Section */}
-					<div>
-						<h3 className="text-sm font-semibold text-foreground mb-2">
-							Authors
-						</h3>
-						<div className="flex flex-wrap gap-2">
-							{paper.authors.map((author) => (
-								<Badge
-									key={author}
-									variant="outline"
-									className="text-sm bg-primary/5 text-primary border-primary/20"
-								>
-									{author}
-								</Badge>
-							))}
+					{/* Author */}
+					{paper.author && (
+						<div>
+							<h3 className="text-sm font-semibold text-foreground mb-2">
+								Author
+							</h3>
+							<p className="text-sm text-muted-foreground">{paper.author}</p>
 						</div>
-					</div>
+					)}
 
 					{/* Abstract Section */}
-					<div>
-						<h3 className="text-sm font-semibold text-foreground mb-2">
-							Abstract
-						</h3>
-						<p className="text-sm text-muted-foreground leading-relaxed bg-primary/5 rounded-lg p-4 border border-primary/10">
-							{paper.abstract}
-						</p>
-					</div>
+					{paper.abstract && (
+						<div>
+							<h3 className="text-sm font-semibold text-foreground mb-2">
+								Abstract
+							</h3>
+							<p className="text-sm text-muted-foreground leading-relaxed bg-primary/5 rounded-lg p-4 border border-primary/10">
+								{paper.abstract}
+							</p>
+						</div>
+					)}
 
 					{/* Stats Section */}
-					<div className="grid grid-cols-2 gap-4">
-						<div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-3 border border-primary/20">
-							<p className="text-xs text-muted-foreground font-medium">
-								Citations
-							</p>
-							<p className="text-xl font-bold text-primary mt-1">
-								{paper.citations.toLocaleString()}
+					{(paper.score || paper.critic_reasoning) && (
+						<div className="grid grid-cols-2 gap-4">
+							{paper.score && (
+								<div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-3 border border-primary/20">
+									<p className="text-xs text-muted-foreground font-medium">
+										Relevance Score
+									</p>
+									<p className="text-xl font-bold text-primary mt-1">
+										{paper.score.toFixed(2)}
+									</p>
+								</div>
+							)}
+							{paper.year && (
+								<div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-3 border border-primary/20">
+									<p className="text-xs text-muted-foreground font-medium">
+										Published
+									</p>
+									<p className="text-xl font-bold text-primary mt-1">
+										{paper.year}
+									</p>
+								</div>
+							)}
+						</div>
+					)}
+
+					{paper.critic_reasoning && (
+						<div>
+							<h3 className="text-sm font-semibold text-foreground mb-2">
+								Analysis Notes
+							</h3>
+							<p className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-3 border border-muted">
+								{paper.critic_reasoning}
 							</p>
 						</div>
-						<div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-3 border border-primary/20">
-							<p className="text-xs text-muted-foreground font-medium">
-								Published
-							</p>
-							<p className="text-xl font-bold text-primary mt-1">
-								{paper.year}
-							</p>
-						</div>
-					</div>
+					)}
 
 					{/* Action Buttons */}
 					<div className="flex gap-3 pt-4 border-t border-primary/10">
-						<Button className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
-							<BookOpen className="h-4 w-4 mr-2" /> View Paper
-						</Button>
+						{paper.download_url && (
+							<Button
+								className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+								onClick={() => window.open(paper.download_url, "_blank")}
+							>
+								<BookOpen className="h-4 w-4 mr-2" /> View Paper
+							</Button>
+						)}
 						<Button variant="outline" className="flex-1">
-							<Quote className="h-4 w-4 mr-2" /> Citations Map
-						</Button>
-						<Button variant="secondary" className="flex-1">
-							+ Add
+							<Quote className="h-4 w-4 mr-2" /> Citations
 						</Button>
 					</div>
-					{/* <BookOpen className="h-4 w-4 mr-2" /> View Full Paper
-						</Button>
-						<Button variant="secondary" className="flex-1">
-							<MessageSquare className="h-4 w-4 mr-2" /> Open in Chat
-						</Button>
-					</div> */}
 				</div>
 			</DialogContent>
 		</Dialog>
@@ -233,14 +216,20 @@ const PaperModal = ({ paper, isOpen, onClose }) => {
 };
 
 // Paper Results Component
-const PaperResults = ({ papers }) => {
+const PaperResults = ({ papers, onSavePaper, savingDois = new Set() }) => {
 	const [selectedPaper, setSelectedPaper] = useState(null);
 
 	return (
 		<>
 			<div className="grid grid-cols-1 gap-3 py-2 max-w-4xl">
 				{papers.map((paper) => (
-					<PaperCard key={paper.id} paper={paper} onSelect={setSelectedPaper} />
+					<PaperCard
+						key={paper.doi}
+						paper={paper}
+						onSelect={setSelectedPaper}
+						onSave={onSavePaper}
+						isSaving={savingDois.has(paper.doi)}
+					/>
 				))}
 			</div>
 			<PaperModal
@@ -253,10 +242,71 @@ const PaperResults = ({ papers }) => {
 };
 
 const ConversationDemo = () => {
+	const { projectId } = useParams();
 	const [input, setInput] = useState("");
 	const [messages, setMessages] = useState([]);
 	const [status, setStatus] = useState("ready");
+	const [threadId, setThreadId] = useState(null);
+	const [saving, setSaving] = useState(false);
+	const [savingDois, setSavingDois] = useState(new Set());
+	const [error, setError] = useState(null);
+	const [isLoadingThread, setIsLoadingThread] = useState(false);
 	const textareaRef = useRef(null);
+	const { selectedThreadId, setSelectedThreadId } = useView();
+
+	// Load thread when selected from sidebar
+	useEffect(() => {
+		const loadSelectedThread = async () => {
+			if (!selectedThreadId) {
+				// No thread selected, clear state
+				setThreadId(null);
+				setMessages([]);
+				return;
+			}
+
+			setIsLoadingThread(true);
+			try {
+				const chatsResponse = await api.get(`/chat/${selectedThreadId}`);
+				setThreadId(selectedThreadId);
+
+				// Convert chats to messages format
+				const loadedMessages = [];
+				for (const chat of chatsResponse.data) {
+					// Add user message
+					loadedMessages.push({
+						id: `user-${chat.id}`,
+						role: "user",
+						content: chat.query,
+						parts: [{ type: "text", text: chat.query }],
+					});
+
+					// Add assistant message with papers
+					if (chat.results && chat.results.length > 0) {
+						loadedMessages.push({
+							id: `assistant-${chat.id}`,
+							role: "assistant",
+							content: `Found ${chat.results.length} relevant papers for: ${chat.query}`,
+							parts: [
+								{
+									type: "papers",
+									papers: chat.results,
+								},
+							],
+						});
+					}
+				}
+				setMessages(loadedMessages);
+				setError(null);
+			} catch (err) {
+				console.error("Error loading thread chats:", err);
+				setError("Failed to load chat history");
+			} finally {
+				setIsLoadingThread(false);
+			}
+		};
+
+		loadSelectedThread();
+	}, [selectedThreadId]);
 
 	useEffect(() => {
 		if (textareaRef.current) {
@@ -270,6 +320,31 @@ const ConversationDemo = () => {
 		setInput(e.currentTarget.value);
 	};
 
+	const handleSavePaper = async (paper) => {
+		if (!projectId) return;
+
+		setSavingDois((prev) => new Set([...prev, paper.doi]));
+
+		try {
+			// Add reference to project
+			await api.post(`/projects/${projectId}/references`, {
+				doi: paper.doi,
+				title: paper.title,
+				author: paper.author,
+				abstract: paper.abstract,
+			});
+		} catch (err) {
+			console.error("Error saving paper:", err);
+			setError("Failed to save paper to project");
+		} finally {
+			setSavingDois((prev) => {
+				const newSet = new Set(prev);
+				newSet.delete(paper.doi);
+				return newSet;
+			});
+		}
+	};
+
 	const handleSubmit = (e) => {
 		if (e?.preventDefault) e.preventDefault();
 
@@ -278,46 +353,129 @@ const ConversationDemo = () => {
 		const userText = input;
 		setInput("");
 
-		// Add user message
-		const userMessage = {
-			id: Date.now().toString(),
-			role: "user",
-			content: userText,
-			parts: [{ type: "text", text: userText }],
-		};
+		// Create thread if it doesn't exist
+		const submitMessage = async () => {
+			let activeThreadId = threadId;
 
-		setMessages((prev) => [...prev, userMessage]);
-		setStatus("streaming");
+			// If no thread exists, create one first
+			if (!activeThreadId) {
+				try {
+					const threadResponse = await api.post("/threads/", {
+						project_id: projectId,
+						title: `Chat Session ${new Date().toLocaleString()}`,
+					});
+					activeThreadId = threadResponse.data.thread_id;
+					setThreadId(activeThreadId);
+				} catch (err) {
+					console.error("Error creating thread:", err);
+					setError("Failed to create chat session");
+					return;
+				}
+			}
 
-		// Simulate assistant response with paper results
-		setTimeout(() => {
-			const assistantMessage = {
-				id: (Date.now() + 1).toString(),
-				role: "assistant",
-				content: `Found 5 relevant papers for: ${userText}`,
-				parts: [
-					{
-						type: "papers",
-						papers: MOCK_PAPERS,
-					},
-				],
+			// Add user message
+			const userMessage = {
+				id: Date.now().toString(),
+				role: "user",
+				content: userText,
+				parts: [{ type: "text", text: userText }],
 			};
 
-			setMessages((prev) => [...prev, assistantMessage]);
-			setStatus("ready");
-		}, 600);
+			setMessages((prev) => [...prev, userMessage]);
+			setStatus("streaming");
+			setError(null);
+
+			// Call chat API
+			try {
+				const chatResponse = await api.post("/chat/", {
+					thread_id: activeThreadId,
+					query: userText,
+				});
+
+				const papers = chatResponse.data.results || [];
+
+				const assistantMessage = {
+					id: (Date.now() + 1).toString(),
+					role: "assistant",
+					content: `Found ${papers.length} relevant papers for: ${userText}`,
+					parts: [
+						{
+							type: "papers",
+							papers: papers,
+						},
+					],
+				};
+
+				setMessages((prev) => [...prev, assistantMessage]);
+				setStatus("ready");
+			} catch (err) {
+				console.error("Chat error:", err);
+				setError(err.response?.data?.detail || "Failed to create chat");
+				setStatus("ready");
+
+				// Add error message
+				const errorMessage = {
+					id: (Date.now() + 2).toString(),
+					role: "assistant",
+					content: "Error processing query",
+					parts: [
+						{
+							type: "text",
+							text: err.response?.data?.detail || "Failed to fetch papers",
+						},
+					],
+				};
+				setMessages((prev) => [...prev, errorMessage]);
+			}
+		};
+
+		submitMessage();
 	};
+
+	if (!projectId) {
+		return (
+			<div className="mx-auto p-6 relative w-full h-full rounded-b-lg border flex items-center justify-center">
+				<div className="text-center">
+					<p className="text-muted-foreground">No project selected</p>
+					<p className="text-sm text-muted-foreground mt-2">
+						Please select a project to begin chatting
+					</p>
+				</div>
+			</div>
+		);
+	}
+
+	if (error && error.includes("initialize")) {
+		return (
+			<div className="mx-auto p-6 relative w-full h-full rounded-b-lg border flex items-center justify-center">
+				<div className="text-center">
+					<p className="text-red-500">{error}</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="mx-auto p-6 relative w-full h-full rounded-b-lg border">
 			<div className="flex flex-col h-full">
+				{error && error.includes("initialize") === false && (
+					<div className="mb-4 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+						{error}
+					</div>
+				)}
 				<Conversation>
 					<ConversationContent>
-						{messages.length === 0 ? (
+						{isLoadingThread ? (
+							<ConversationEmptyState
+								icon={<Loader2 className="size-12 animate-spin" />}
+								title="Loading chat history"
+								description="Please wait..."
+							/>
+						) : messages.length === 0 ? (
 							<ConversationEmptyState
 								icon={<MessageSquare className="size-12" />}
 								title="Start a conversation"
-								description="Type a message below to begin chatting"
+								description="Ask questions about research papers and find relevant literature"
 							/>
 						) : (
 							messages.map((message) => (
@@ -341,7 +499,11 @@ const ConversationDemo = () => {
 												case "papers":
 													return (
 														<div key={`${message.id}-${i}`} className="w-full">
-															<PaperResults papers={part.papers} />
+															<PaperResults
+																papers={part.papers}
+																onSavePaper={handleSavePaper}
+																savingDois={savingDois}
+															/>
 														</div>
 													);
 												default:
@@ -364,6 +526,7 @@ const ConversationDemo = () => {
 						value={input}
 						placeholder="Search papers, ask about research topics..."
 						onChange={handleInputChange}
+						disabled={status === "streaming"}
 						style={{
 							resize: "none",
 							overflow: "hidden",
