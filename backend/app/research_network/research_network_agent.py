@@ -91,3 +91,30 @@ def fetch_reference_details(paper_id: str) -> Dict[str, Any]:
         return {"success": False, "data": None, "error": "Semantic Scholar request timed out"}
     except Exception as e:
         return {"success": False, "data": None, "error": str(e)}
+    
+
+async def fetch_paper_by_doi_async(doi: str) -> Dict[str, Any]:
+    """Fetch paper data from Semantic Scholar using DOI (async)."""
+    try:
+        clean = clean_doi(doi)
+        url = f"{SEMANTIC_SCHOLAR_BASE_URL}/paper/DOI:{urllib.parse.quote(clean)}"
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, params={"fields": ",".join(PAPER_FIELDS)}, timeout=15)
+        return _handle_httpx_response(response, f"DOI: {clean}")
+    except httpx.TimeoutException:
+        return {"success": False, "data": None, "error": "Semantic Scholar request timed out"}
+    except Exception as e:
+        return {"success": False, "data": None, "error": str(e)}
+
+
+async def fetch_reference_details_async(paper_id: str) -> Dict[str, Any]:
+    """Fetch detailed information for a paper by Semantic Scholar ID (async)."""
+    try:
+        url = f"{SEMANTIC_SCHOLAR_BASE_URL}/paper/{paper_id}"
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, params={"fields": ",".join(REFERENCE_FIELDS)}, timeout=15)
+        return _handle_httpx_response(response, f"ID: {paper_id}")
+    except httpx.TimeoutException:
+        return {"success": False, "data": None, "error": "Semantic Scholar request timed out"}
+    except Exception as e:
+        return {"success": False, "data": None, "error": str(e)}
