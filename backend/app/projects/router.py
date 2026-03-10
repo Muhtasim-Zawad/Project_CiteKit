@@ -249,68 +249,36 @@ async def get_recent_projects(
         )
 
 
-@router.get("/", response_model=List[ProjectResponse])
+@router.get("/", response_model=List[ProjectSummary])
 async def get_user_projects(
     page: int = 1,
     current_user: dict = Depends(get_current_user),
     supabase=Depends(get_supabase)
 ):
     """
-    Get paginated projects for the current authenticated user, including their references.
+    Get paginated projects for the current authenticated user.
     Returns 10 projects per page, ordered by created_at descending.
     """
     try:
         limit = 10
         offset = (page - 1) * limit
 
-        # Fetch paginated projects for the user
-        projects_resp = supabase.table("projects").select("*") \
+        projects_resp = supabase.table("projects") \
+            .select("project_id, title, description, updated_at") \
             .eq("user_id", current_user["id"]) \
             .order("created_at", desc=True) \
             .range(offset, offset + limit - 1) \
             .execute()
 
-        if not projects_resp.data:
-            return []
-
-        projects_list = []
-
-        for project in projects_resp.data:
-            project_id = project["project_id"]
-
-            # Fetch references for this project
-            references_resp = supabase.table("project_reference").select(
-                "doi, add_time, reference(*)"
-            ).eq("project_id", project_id).execute()
-
-            references_list = []
-            if references_resp.data:
-                for item in references_resp.data:
-                    ref_data = item.get("reference", {})
-                    references_list.append(
-                        ReferenceResponse(
-                            doi=item["doi"],
-                            title=ref_data.get("title"),
-                            author=ref_data.get("author"),
-                            abstract=ref_data.get("abstract"),
-                            add_time=item["add_time"]  # should already be ISO string
-                        )
-                    )
-
-            # Append project with references
-            projects_list.append(
-                ProjectResponse(
-                    project_id=project_id,
-                    title=project.get("title"),
-                    description=project.get("description"),
-                    user_id=project.get("user_id"),
-                    created_at=project.get("created_at"),
-                    updated_at=project.get("updated_at"),
-                    references=references_list
-                )
+        return [
+            ProjectSummary(
+                project_id=p["project_id"],
+                title=p["title"],
+                description=p.get("description"),
+                updated_at=p["updated_at"],
             )
-
-        return projects_list
+            for p in (projects_resp.data or [])
+        ]
 
     except Exception as e:
         raise HTTPException(
