@@ -17,12 +17,12 @@ SUMMARY_SYSTEM_PROMPT = (
 )
 
 
-def fetch_chat_queries(supabase, project_id: str) -> list[str]:
-    """Fetch all chat queries for a project, ordered by creation time."""
+def fetch_chat_queries(supabase, thread_id: str) -> list[str]:
+    """Fetch all chat queries for a thread, ordered by creation time."""
     resp = (
         supabase.table("chat")
         .select("query")
-        .eq("project_id", project_id)
+        .eq("thread_id", thread_id)
         .order("created_at")
         .execute()
     )
@@ -49,21 +49,21 @@ def generate_summary_from_queries(queries: list[str]) -> str:
     return response.choices[0].message.content.strip()
 
 
-def update_project_summary(supabase, project_id: str, summary: str) -> None:
-    """Write the generated summary back to the projects table."""
-    supabase.table("projects").update({"summary": summary}).eq(
-        "project_id", project_id
+def update_thread_summary(supabase, thread_id: str, summary: str) -> None:
+    """Write the generated summary back to the thread table."""
+    supabase.table("thread").update({"summary": summary}).eq(
+        "thread_id", thread_id
     ).execute()
 
 
-def generate_and_store_summary(supabase, project_id: str) -> str | None:
+def generate_and_store_summary(supabase, thread_id: str) -> str | None:
     """
     End-to-end: fetch queries → generate summary → persist it.
     Returns the summary string, or None if no chats exist.
     """
-    queries = fetch_chat_queries(supabase, project_id)
+    queries = fetch_chat_queries(supabase, thread_id)
     if not queries:
         return None
     summary = generate_summary_from_queries(queries)
-    update_project_summary(supabase, project_id, summary)
+    update_thread_summary(supabase, thread_id, summary)
     return summary

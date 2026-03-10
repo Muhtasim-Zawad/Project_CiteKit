@@ -7,7 +7,7 @@ from app.schemas.chat_result import ChatResultResponse
 
 class Chat(BaseModel):
     id: Optional[int] = None
-    project_id: UUID
+    thread_id: UUID
     query: str
     search_terms: Optional[str] = None
     created_at: Optional[datetime] = None
@@ -17,7 +17,7 @@ class Chat(BaseModel):
 
 
 class ChatCreate(BaseModel):
-    project_id: UUID
+    thread_id: UUID
     query: str
 
 
@@ -30,7 +30,7 @@ class ChatMessage(BaseModel):
 
 class ChatResponse(BaseModel):
     id: int
-    project_id: UUID
+    thread_id: UUID
     query: str
     search_terms: Optional[str] = None
     created_at: Optional[datetime] = None
@@ -40,7 +40,7 @@ class ChatResponse(BaseModel):
 SQL_CREATE = """
 CREATE TABLE IF NOT EXISTS public.chat (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    project_id UUID NOT NULL REFERENCES public.projects(project_id) ON DELETE CASCADE,
+    thread_id UUID NOT NULL REFERENCES public.thread(thread_id) ON DELETE CASCADE,
     query TEXT NOT NULL,
     search_terms TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
