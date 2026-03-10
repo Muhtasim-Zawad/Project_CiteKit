@@ -118,3 +118,67 @@ async def fetch_reference_details_async(paper_id: str) -> Dict[str, Any]:
         return {"success": False, "data": None, "error": "Semantic Scholar request timed out"}
     except Exception as e:
         return {"success": False, "data": None, "error": str(e)}
+
+
+def format_paper_response(api_response: Dict) -> Dict[str, Any]:
+    """Convert raw Semantic Scholar paper response into clean structured data."""
+    if not api_response:
+        return {}
+
+    references = [
+        {
+            "paper_id": ref.get("paperId"),
+            "title": ref.get("title"),
+            "doi": ref.get("doi"),
+            "year": ref.get("year"),
+            "authors": parse_authors(ref.get("authors")),
+            "venue": ref.get("venue")
+        }
+        for ref in (api_response.get("references") or [])[:100]
+    ]
+
+    citations = [
+        {
+            "paper_id": citation.get("paperId"),
+            "title": citation.get("title"),
+            "doi": citation.get("doi"),
+            "year": citation.get("year"),
+            "authors": parse_authors(citation.get("authors")),
+            "venue": citation.get("venue")
+        }
+        for citation in (api_response.get("citations") or [])[:100]
+    ]
+
+    return {
+        "paper_id": api_response.get("paperId"),
+        "title": api_response.get("title"),
+        "year": api_response.get("year"),
+        "authors": parse_authors(api_response.get("authors")),
+        "abstract": api_response.get("abstract"),
+        "venue": api_response.get("venue"),
+        "doi": api_response.get("doi"),
+        "references": references or None,
+        "citations": citations or None,
+        "references_count": len(references),
+        "citations_count": len(citations)
+    }
+
+
+def format_reference_response(api_response: Dict) -> Dict[str, Any]:
+    """Format a reference detail response into clean structured data."""
+    if not api_response:
+        return {}
+
+    return {
+        "paper_id": api_response.get("paperId"),
+        "title": api_response.get("title"),
+        "year": api_response.get("year"),
+        "authors": parse_authors(api_response.get("authors")),
+        "abstract": api_response.get("abstract"),
+        "venue": api_response.get("venue"),
+        "doi": api_response.get("doi"),
+        "is_open_access": api_response.get("isOpenAccess"),
+        "citations_count": api_response.get("citationCount"),
+        "references_count": api_response.get("referenceCount"),
+        "influential_citations_count": api_response.get("influentialCitationCount")
+    }
