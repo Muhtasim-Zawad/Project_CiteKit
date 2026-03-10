@@ -58,10 +58,13 @@ async def create_thread(
 @router.get("/project/{project_id}", response_model=List[ThreadSummary])
 async def get_project_threads(
     project_id: str,
+    page: int = 1,
     current_user: dict = Depends(get_current_user),
     supabase=Depends(get_supabase)
 ):
-    """Get all threads for a project, ordered by most recent."""
+    """Get threads for a project, paginated (3 per page), ordered by most recent."""
+    PAGE_SIZE = 3
+
     # Verify project ownership
     project = supabase.table("projects").select("project_id") \
         .eq("project_id", project_id) \
@@ -74,10 +77,13 @@ async def get_project_threads(
             detail="Project not found or not owned by user"
         )
 
+    offset = (page - 1) * PAGE_SIZE
+
     resp = supabase.table("thread") \
         .select("thread_id, title, summary, updated_at") \
         .eq("project_id", project_id) \
         .order("updated_at", desc=True) \
+        .range(offset, offset + PAGE_SIZE - 1) \
         .execute()
 
     return [
