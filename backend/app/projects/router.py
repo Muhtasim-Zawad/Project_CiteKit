@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 from datetime import datetime, timezone
 from app.db.supabase import get_supabase
-from app.schemas import ProjectCreate, ProjectResponse, ReferenceCreate, ReferenceResponse, MessageResponse
+from app.schemas import ProjectCreate, ProjectUpdate, ProjectResponse, ReferenceCreate, ReferenceResponse, MessageResponse
 from app.auth.dependencies import get_current_user
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
@@ -21,6 +21,7 @@ async def create_project(
     try:
         response = supabase.table("projects").insert({
             "title": project.title,
+            "description": project.description,
             "user_id": current_user["id"],  
             "created_at": now,
             "updated_at": now
@@ -37,6 +38,7 @@ async def create_project(
         return ProjectResponse(
             project_id=project_id,
             title=project.title,
+            description=project.description,
             user_id=current_user["id"],
             created_at=now,
             updated_at=now,
@@ -49,6 +51,56 @@ async def create_project(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error creating project: {str(e)}"
+        )
+
+
+@router.patch("/{project_id}", response_model=ProjectResponse)
+async def update_project(
+    project_id: str,
+    project: ProjectUpdate,
+    current_user: dict = Depends(get_current_user),
+    supabase=Depends(get_supabase)
+):
+    """
+    Update a project owned by the current user.
+    """
+    try:
+        update_data = project.model_dump(exclude_none=True)
+        if not update_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No fields to update"
+            )
+        update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+        response = supabase.table("projects").update(update_data) \
+            .eq("project_id", project_id) \
+            .eq("user_id", current_user["id"]) \
+            .execute()
+
+        if not response.data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Project not found or not owned by user"
+            )
+
+        p = response.data[0]
+        return ProjectResponse(
+            project_id=p["project_id"],
+            title=p["title"],
+            description=p.get("description"),
+            user_id=p["user_id"],
+            created_at=p["created_at"],
+            updated_at=p["updated_at"],
+            references=[]
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating project: {str(e)}"
         )
 
 
@@ -209,6 +261,7 @@ async def get_user_projects(
                 ProjectResponse(
                     project_id=project_id,
                     title=project.get("title"),
+                    description=project.get("description"),
                     user_id=project.get("user_id"),
                     created_at=project.get("created_at"),
                     updated_at=project.get("updated_at"),
@@ -271,6 +324,7 @@ async def get_project(
         return ProjectResponse(
             project_id=project["project_id"],
             title=project.get("title"),
+            description=project.get("description"),
             user_id=project.get("user_id"),
             created_at=project.get("created_at"),
             updated_at=project.get("updated_at"),
