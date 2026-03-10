@@ -4,6 +4,17 @@ from .Librarian_class import ResearchRequest, ResearchResponse
 from .Librarian_agent import agent
 from .cross_ref_class import CrossRefRequest, CrossRefResponse
 from .cross__ref_agent import cross_ref_agent
+from .Secretary_class import (
+    ZoteroSyncRequest,
+    ZoteroSyncResponse,
+    MendeleySyncRequest,
+    MendeleySyncResponse,
+    ZoteroBatchSyncRequest,
+    BatchZoteroSyncResponse,
+    MendeleybatchSyncRequest,
+    BatchMendeleySyncResponse
+)
+from .Secretary_agent import secretary_zotero_agent, secretary_mendeley_agent
 
 router = APIRouter(prefix="/research", tags=["Research"])
 
@@ -66,3 +77,5 @@ def get_cross_ref_data(payload: CrossRefRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
