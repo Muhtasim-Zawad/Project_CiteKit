@@ -251,16 +251,24 @@ async def get_recent_projects(
 
 @router.get("/", response_model=List[ProjectResponse])
 async def get_user_projects(
+    page: int = 1,
     current_user: dict = Depends(get_current_user),
     supabase=Depends(get_supabase)
 ):
     """
-    Get all projects for the current authenticated user, including their references.
+    Get paginated projects for the current authenticated user, including their references.
+    Returns 10 projects per page, ordered by created_at descending.
     """
     try:
-        # Fetch all projects for the user
+        limit = 10
+        offset = (page - 1) * limit
+
+        # Fetch paginated projects for the user
         projects_resp = supabase.table("projects").select("*") \
-            .eq("user_id", current_user["id"]).execute()
+            .eq("user_id", current_user["id"]) \
+            .order("created_at", desc=True) \
+            .range(offset, offset + limit - 1) \
+            .execute()
 
         if not projects_resp.data:
             return []
