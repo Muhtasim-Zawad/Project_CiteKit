@@ -24,3 +24,25 @@ class ZoteroSyncResponse(BaseModel):
     error: Optional[str] = None
     doi: str
     title: str
+
+
+class MendeleySyncRequest(BaseModel):
+    """Request model for syncing papers to Mendeley"""
+    doi: str
+    title: str
+    author: Optional[str] = None
+    abstract: Optional[str] = None
+    year: Optional[int] = None
+    tags: Optional[List[str]] = None
+    mendeley_access_token: str
+
+
+class MendeleySyncResponse(BaseModel):
+    """Response model for Mendeley sync"""
+    success: bool
+    mendeley_id: Optional[str] = None
+    message: str
+    error: Optional[str] = None
+    doi: str
+    title: str
+
