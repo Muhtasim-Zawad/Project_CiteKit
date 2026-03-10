@@ -17,14 +17,6 @@ class PaperSummary(BaseModel):
     authors: Optional[List[AuthorInfo]] = None
     venue: Optional[str] = None
 
-class SemanticScholarByDOIRequest(BaseModel):
-    """Request model for fetching paper data by DOI"""
-    doi: str
-
-
-class SemanticScholarByPaperIDRequest(BaseModel):
-    """Request model for fetching paper details by Semantic Scholar paper ID"""
-    paper_id: str
 
 
 class SemanticScholarPaperResponse(BaseModel):
