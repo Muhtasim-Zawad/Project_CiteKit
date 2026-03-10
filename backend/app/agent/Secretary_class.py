@@ -46,3 +46,28 @@ class MendeleySyncResponse(BaseModel):
     doi: str
     title: str
 
+class ZoteroBatchSyncRequest(BaseModel):
+    """Request model for batch syncing papers to Zotero"""
+    papers: List[ZoteroSyncRequest]
+
+
+class MendeleybatchSyncRequest(BaseModel):
+    """Request model for batch syncing papers to Mendeley"""
+    papers: List[MendeleySyncRequest]
+
+
+class BatchZoteroSyncResponse(BaseModel):
+    """Response model for batch Zotero sync operations"""
+    total_papers: int
+    successful_syncs: int
+    failed_syncs: int
+    results: List[ZoteroSyncResponse]
+
+
+class BatchMendeleySyncResponse(BaseModel):
+    """Response model for batch Mendeley sync operations"""
+    total_papers: int
+    successful_syncs: int
+    failed_syncs: int
+    results: List[MendeleySyncResponse]
+    
