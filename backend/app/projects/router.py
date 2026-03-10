@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 from datetime import datetime, timezone
 from app.db.supabase import get_supabase
-from app.schemas import ProjectCreate, ProjectUpdate, ProjectResponse, ReferenceCreate, ReferenceResponse, MessageResponse
+from app.schemas import ProjectCreate, ProjectUpdate, ProjectResponse, ProjectSummary, ReferenceCreate, ReferenceResponse, MessageResponse
 from app.auth.dependencies import get_current_user
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
@@ -213,6 +213,39 @@ async def delete_reference_from_project(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error removing reference: {str(e)}"
+        )
+
+
+@router.get("/recent", response_model=List[ProjectSummary])
+async def get_recent_projects(
+    current_user: dict = Depends(get_current_user),
+    supabase=Depends(get_supabase)
+):
+    """
+    Get the 10 most recently updated projects for the current user.
+    """
+    try:
+        response = supabase.table("projects") \
+            .select("project_id, title, description, updated_at") \
+            .eq("user_id", current_user["id"]) \
+            .order("updated_at", desc=True) \
+            .limit(10) \
+            .execute()
+
+        return [
+            ProjectSummary(
+                project_id=p["project_id"],
+                title=p["title"],
+                description=p.get("description"),
+                updated_at=p["updated_at"]
+            )
+            for p in (response.data or [])
+        ]
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching recent projects: {str(e)}"
         )
 
 
