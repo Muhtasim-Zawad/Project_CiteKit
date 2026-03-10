@@ -48,7 +48,6 @@ export function NavMain({ items, onItemClick, isWorkspace, activeView }) {
 										<span>New Project</span>
 									</SidebarMenuButton>
 								}
-								onSave={() => navigate("/workspace")}
 							/>
 						)}
 					</SidebarMenuItem>

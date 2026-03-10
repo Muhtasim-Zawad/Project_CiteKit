@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -15,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import api from "@/api";
 
 export function NewProject({ trigger, onSave }) {
+	const navigate = useNavigate();
 	const [title, setTitle] = useState("");
 	const [description, setDescription] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -27,14 +29,17 @@ export function NewProject({ trigger, onSave }) {
 		setLoading(true);
 
 		try {
-			await api.post("/projects/", {
+			const response = await api.post("/projects/", {
 				title,
 				description,
 			});
+			const projectId = response.data.project_id;
 			setOpen(false);
 			setTitle("");
 			setDescription("");
-			onSave?.();
+			onSave?.(projectId);
+			// Navigate to the new project workspace
+			navigate(`/workspace/${projectId}`);
 		} catch (err) {
 			setError(err.response?.data?.detail || "Failed to create project");
 		} finally {

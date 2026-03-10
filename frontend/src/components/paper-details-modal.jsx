@@ -45,19 +45,19 @@ export default function PaperDetailsModal({
 									<div className="space-y-2">
 										{allPapers.map((paper) => (
 											<Card
-												key={paper.id}
+												key={paper.doi}
 												onClick={() => onSelectPaper(paper)}
 												className={`p-3 cursor-pointer transition-all ${
-													paper.id === selectedPaper.id
+													paper.doi === selectedPaper.doi
 														? "bg-primary text-primary-foreground shadow-md"
 														: "hover:shadow-md hover:bg-muted"
 												}`}
 											>
 												<h4 className="font-semibold text-xs line-clamp-2">
-													{paper.title}
+													{paper.title || "Untitled"}
 												</h4>
 												<p className="text-xs opacity-80 mt-1">
-													{paper.author}
+													{paper.author || "Unknown Author"}
 												</p>
 											</Card>
 										))}
@@ -112,19 +112,21 @@ export default function PaperDetailsModal({
 									<div className="space-y-4">
 										<div>
 											<h3 className="text-xl font-bold mb-2">
-												{selectedPaper.title}
+												{selectedPaper.title || "Untitled"}
 											</h3>
 											<p className="text-sm text-muted-foreground">
-												By: {selectedPaper.author}
+												By: {selectedPaper.author || "Unknown Author"}
 											</p>
 										</div>
 
-										<div>
-											<h4 className="font-semibold text-sm mb-2">Abstract</h4>
-											<p className="text-sm text-muted-foreground leading-relaxed">
-												{selectedPaper.abstract}
-											</p>
-										</div>
+										{selectedPaper.abstract && (
+											<div>
+												<h4 className="font-semibold text-sm mb-2">Abstract</h4>
+												<p className="text-sm text-muted-foreground leading-relaxed">
+													{selectedPaper.abstract}
+												</p>
+											</div>
+										)}
 
 										{selectedPaper.year && (
 											<div>
@@ -135,22 +137,47 @@ export default function PaperDetailsModal({
 											</div>
 										)}
 
-										{selectedPaper.journal && (
+										{selectedPaper.score !== null &&
+											selectedPaper.score !== undefined && (
+												<div>
+													<h4 className="font-semibold text-sm mb-2">
+														Relevance Score
+													</h4>
+													<div className="flex items-center gap-2">
+														<div className="flex-1 bg-muted rounded-full h-2">
+															<div
+																className="bg-primary h-2 rounded-full"
+																style={{
+																	width: `${Math.min(
+																		(selectedPaper.score / 100) * 100,
+																		100,
+																	)}%`,
+																}}
+															/>
+														</div>
+														<span className="text-sm font-semibold">
+															{selectedPaper.score.toFixed(2)}
+														</span>
+													</div>
+												</div>
+											)}
+
+										{selectedPaper.critic_reasoning && (
 											<div>
-												<h4 className="font-semibold text-sm mb-2">Journal</h4>
-												<p className="text-sm text-muted-foreground">
-													{selectedPaper.journal}
+												<h4 className="font-semibold text-sm mb-2">
+													Critic Notes
+												</h4>
+												<p className="text-sm text-muted-foreground bg-muted/50 p-2 rounded">
+													{selectedPaper.critic_reasoning}
 												</p>
 											</div>
 										)}
 
-										{selectedPaper.citations && (
+										{selectedPaper.doi && (
 											<div>
-												<h4 className="font-semibold text-sm mb-2">
-													Citations
-												</h4>
-												<p className="text-sm text-muted-foreground">
-													{selectedPaper.citations} citations
+												<h4 className="font-semibold text-sm mb-2">DOI</h4>
+												<p className="text-sm text-muted-foreground break-all">
+													{selectedPaper.doi}
 												</p>
 											</div>
 										)}
@@ -159,7 +186,16 @@ export default function PaperDetailsModal({
 
 								{/* Bottom Action Buttons */}
 								<div className="border-t p-4 flex justify-end gap-2">
-									<Button variant="outline">View Full Paper</Button>
+									{selectedPaper.download_url && (
+										<Button
+											variant="outline"
+											onClick={() =>
+												window.open(selectedPaper.download_url, "_blank")
+											}
+										>
+											View Full Paper
+										</Button>
+									)}
 									<Button variant="destructive">Remove</Button>
 								</div>
 							</div>

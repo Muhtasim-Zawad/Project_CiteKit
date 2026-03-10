@@ -33,6 +33,14 @@ function App() {
 					</ProtectedRoute>
 				}
 			/>
+			<Route
+				path="/workspace/:projectId"
+				element={
+					<ProtectedRoute>
+						<Workstation />
+					</ProtectedRoute>
+				}
+			/>
 		</Routes>
 	);
 }
