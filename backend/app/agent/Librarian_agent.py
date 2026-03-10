@@ -8,8 +8,11 @@ from app.config import get_settings
 from .cross__ref_agent import cross_ref_agent
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from app.db.supabase import supabase
+from collections import Counter
+
 # -------- OpenAlex Helpers -------- #
 settings = get_settings()
+
 def de_invert_abstract(inverted_index):
     if not inverted_index:
         return "No abstract available."
@@ -30,13 +33,13 @@ def search_openalex(search_query: str, per_page: int = 5):
         response = requests.get(base_url, params=params)
         response.raise_for_status()
         data = response.json()
-        
+
         results = []
         for work in data.get('results', [])[:per_page]:
             title = work.get('display_name', 'N/A')
             doi = work.get('doi', 'N/A')
             year = work.get('publication_year', 'N/A')
-            
+
             raw_abstract = work.get('abstract_inverted_index')
             abstract_text = de_invert_abstract(raw_abstract)
 
@@ -47,7 +50,7 @@ def search_openalex(search_query: str, per_page: int = 5):
                 for a in authorships
                 if a.get('author', {}).get('display_name')
             ) or None
-            
+
             results.append({
                 'title': title,
                 'doi': doi,
@@ -55,7 +58,7 @@ def search_openalex(search_query: str, per_page: int = 5):
                 'abstract': abstract_text,
                 'author': author_names
             })
-        
+
         return results
     except Exception as e:
         return [{"error": str(e)}]
@@ -67,34 +70,22 @@ def get_llm():
     return ChatGroq(
         model="llama-3.3-70b-versatile",
         temperature=0,
-        api_key=settings.groq_api_key  # 🔑 explicit, reliable
+        api_key=settings.groq_api_key
     )
 
-# -------- Nodes -------- #
 
-def extract_search_terms(state: AgentState) -> AgentState:
+# -------- Helpers -------- #
 
-    llm = get_llm()
-    """Extract relevant search terms from user query"""
-    user_query = state["user_query"]
-    
-    prompt = f"""You are a research assistant. Extract the key search terms from the following query 
-    that should be used to search an academic database. Return ONLY the search terms separated by spaces,
-    no additional text or explanation.
-    
-    User query: {user_query}
-    
-    Search terms:"""
-
-    response = llm.invoke([HumanMessage(content=prompt)])
-    search_terms = response.content.strip().replace(" ", "+")
-
-    return {**state, "search_terms": search_terms}
+def _normalize_doi(doi: str) -> str:
+    """Normalize a DOI to a consistent lowercase format without URL prefix."""
+    if not doi:
+        return ""
+    return doi.replace("https://doi.org/", "").strip().lower()
 
 
 def get_paper_from_db(doi: str):
     """Fetch paper + metrics from Supabase if it exists."""
-    
+
     ref = (
         supabase.table("reference")
         .select("*")
@@ -118,6 +109,7 @@ def get_paper_from_db(doi: str):
 
     return paper
 
+
 def _enrich_paper(paper):
 
     if "error" in paper:
@@ -131,11 +123,11 @@ def _enrich_paper(paper):
     clean_doi = doi.replace("https://doi.org/", "")
 
     # ---------------------------
-    # 1️⃣ Check Supabase cache
+    # 1. Check Supabase cache
     # ---------------------------
     db_paper = get_paper_from_db(clean_doi)
 
-    if db_paper:
+    if db_paper and db_paper.get("dimensions_metrics"):
         paper["abstract"] = db_paper.get("abstract")
         paper["year"] = db_paper.get("year")
         paper["author"] = db_paper.get("author")
@@ -145,7 +137,7 @@ def _enrich_paper(paper):
         return paper
 
     # ---------------------------
-    # 2️⃣ Otherwise call APIs
+    # 2. Otherwise call APIs
     # ---------------------------
     cross_state = {
         "doi": clean_doi,
@@ -172,22 +164,88 @@ def _enrich_paper(paper):
     return paper
 
 
-def search_papers(state: AgentState) -> AgentState:
-    results = search_openalex(state["search_terms"])
-    
-    # Enrich all papers in parallel — all cross-ref calls fire simultaneously
-    with ThreadPoolExecutor(max_workers=5) as executor:
-        futures = {executor.submit(_enrich_paper, paper): paper for paper in results}
-        enriched_results = []
+# -------- Nodes -------- #
+
+CANDIDATE_N = 25  # Papers sent to critic for scoring
+FINAL_N = 5       # Papers returned after ranking
+
+
+def extract_search_terms(query: str) -> str:
+    """Single LLM call: convert one natural-language query into keywords."""
+    llm = get_llm()
+    prompt = f"""You are a research assistant. Extract the key academic search terms
+from the following natural language query. Return ONLY the search terms
+separated by spaces. No additional text or explanation.
+
+Query: {query}
+
+Search terms:"""
+    response = llm.invoke([HumanMessage(content=prompt)])
+    cleaned = response.content.strip()
+    return cleaned if cleaned else query
+
+
+def search_and_rank(state: AgentState) -> AgentState:
+    """
+    For each expanded query: extract keywords (1 LLM call each),
+    search OpenAlex, count DOI frequency across all queries,
+    pick top candidates, then enrich.
+    """
+    expanded_queries = state.get("expanded_queries", [])
+    if not expanded_queries:
+        expanded_queries = [state["user_query"]]
+
+    # --- Phase 1: Extract keywords + search OpenAlex per query ---
+    doi_count: Counter = Counter()
+    paper_map: dict[str, dict] = {}  # normalized DOI → paper dict
+    all_search_terms: list[str] = []
+
+    for query in expanded_queries:
+        # Extract keywords via LLM
+        keywords = extract_search_terms(query)
+        search_term = keywords.strip().replace(" ", "+")
+        all_search_terms.append(search_term)
+
+        results = search_openalex(search_term, per_page=7)
+        for paper in results:
+            if "error" in paper:
+                continue
+            doi = paper.get("doi", "")
+            norm = _normalize_doi(doi)
+            if not norm:
+                continue
+            doi_count[norm] += 1
+            if norm not in paper_map:
+                paper_map[norm] = paper
+
+    # --- Phase 2: Rank by frequency, pick top candidates for critic ---
+    ranked_dois = sorted(
+        paper_map.keys(),
+        key=lambda d: doi_count[d],
+        reverse=True
+    )[:CANDIDATE_N]
+
+    top_papers = []
+    for doi in ranked_dois:
+        paper = paper_map[doi]
+        paper["appearance_count"] = doi_count[doi]
+        top_papers.append(paper)
+
+    # --- Phase 3: Enrich only candidates in parallel ---
+    with ThreadPoolExecutor(max_workers=min(CANDIDATE_N, 10)) as executor:
+        futures = {executor.submit(_enrich_paper, p): p for p in top_papers}
+        enriched = []
         for future in as_completed(futures):
             try:
-                enriched_results.append(future.result())
+                enriched.append(future.result())
             except Exception as e:
                 paper = futures[future]
                 paper["cross_ref_error"] = str(e)
-                enriched_results.append(paper)
+                enriched.append(paper)
 
-    return {**state, "results": enriched_results}
+    search_terms = " | ".join(all_search_terms)
+
+    return {**state, "results": enriched, "search_terms": search_terms}
 
 
 from app.agent.critic_agent import critique_results
@@ -196,15 +254,13 @@ from app.agent.critic_agent import critique_results
 
 def create_research_agent():
     graph = StateGraph(AgentState)
-    graph.add_node("extract", extract_search_terms)
-    graph.add_node("search", search_papers)
+    graph.add_node("search_and_rank", search_and_rank)
     graph.add_node("critique", critique_results)
 
-    graph.add_edge("extract", "search")
-    graph.add_edge("search", "critique")
+    graph.add_edge("search_and_rank", "critique")
     graph.add_edge("critique", END)
 
-    graph.set_entry_point("extract")
+    graph.set_entry_point("search_and_rank")
     return graph.compile()
 
 

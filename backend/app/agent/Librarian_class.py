@@ -27,5 +27,6 @@ class ResearchResponse(BaseModel):
 
 class AgentState(TypedDict):
     user_query: str
+    expanded_queries: list[str]
     search_terms: str
     results: list
