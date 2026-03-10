@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 from datetime import datetime, timezone
 from app.db.supabase import get_supabase
-from app.schemas import ProjectCreate, ProjectUpdate, ProjectResponse, ReferenceCreate, ReferenceResponse, MessageResponse
+from app.schemas import ProjectCreate, ProjectUpdate, ProjectResponse, ProjectSummary, ReferenceCreate, ReferenceResponse, MessageResponse
 from app.auth.dependencies import get_current_user
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
@@ -216,18 +216,59 @@ async def delete_reference_from_project(
         )
 
 
-@router.get("/", response_model=List[ProjectResponse])
-async def get_user_projects(
+@router.get("/recent", response_model=List[ProjectSummary])
+async def get_recent_projects(
     current_user: dict = Depends(get_current_user),
     supabase=Depends(get_supabase)
 ):
     """
-    Get all projects for the current authenticated user, including their references.
+    Get the 10 most recently updated projects for the current user.
     """
     try:
-        # Fetch all projects for the user
+        response = supabase.table("projects") \
+            .select("project_id, title, description, updated_at") \
+            .eq("user_id", current_user["id"]) \
+            .order("updated_at", desc=True) \
+            .limit(10) \
+            .execute()
+
+        return [
+            ProjectSummary(
+                project_id=p["project_id"],
+                title=p["title"],
+                description=p.get("description"),
+                updated_at=p["updated_at"]
+            )
+            for p in (response.data or [])
+        ]
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching recent projects: {str(e)}"
+        )
+
+
+@router.get("/", response_model=List[ProjectResponse])
+async def get_user_projects(
+    page: int = 1,
+    current_user: dict = Depends(get_current_user),
+    supabase=Depends(get_supabase)
+):
+    """
+    Get paginated projects for the current authenticated user, including their references.
+    Returns 10 projects per page, ordered by created_at descending.
+    """
+    try:
+        limit = 10
+        offset = (page - 1) * limit
+
+        # Fetch paginated projects for the user
         projects_resp = supabase.table("projects").select("*") \
-            .eq("user_id", current_user["id"]).execute()
+            .eq("user_id", current_user["id"]) \
+            .order("created_at", desc=True) \
+            .range(offset, offset + limit - 1) \
+            .execute()
 
         if not projects_resp.data:
             return []

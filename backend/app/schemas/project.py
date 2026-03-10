@@ -45,6 +45,16 @@ class MessageResponse(BaseModel):
     message: str
 
 
+class ProjectSummary(BaseModel):
+    project_id: str
+    title: str
+    description: Optional[str] = None
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 SQL_CREATE_PROJECTS = """
 CREATE TABLE IF NOT EXISTS public.projects (
     project_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
