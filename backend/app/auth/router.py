@@ -141,11 +141,13 @@ async def login(credentials: UserLogin):
 
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh_token(refresh_token: str):
+async def refresh_token(data: dict):
     """
     Refresh the access token using refresh token.
     """
     supabase = get_supabase()
+    
+    refresh_token = data.get("refresh_token") if isinstance(data, dict) else data
 
     try:
         auth_response = supabase.auth.refresh_session(refresh_token)
