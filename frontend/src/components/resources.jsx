@@ -96,13 +96,13 @@ export function Resources() {
 							<CardTitle className="text-base font-bold leading-tight line-clamp-2 text-foreground">
 								{resource.title}
 							</CardTitle>
-							<div className="flex items-center gap-2 mt-2">
+							{/* <div className="flex items-center gap-2 mt-2">
 								<span
 									className={`px-2 py-1 text-xs font-semibold rounded-md ${resource.color}`}
 								>
 									{resource.year}
 								</span>
-							</div>
+							</div> */}
 						</CardHeader>
 						<CardContent className="pb-4">
 							<p className="text-sm text-muted-foreground line-clamp-4 mb-3">

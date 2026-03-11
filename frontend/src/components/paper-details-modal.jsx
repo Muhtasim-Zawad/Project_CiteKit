@@ -21,8 +21,27 @@ export default function PaperDetailsModal({
 	const [nodeDetails, setNodeDetails] = useState(null);
 	const [savingPaper, setSavingPaper] = useState(false);
 	const [hoveredNode, setHoveredNode] = useState(null);
-	const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+	// const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 	const forceGraphRef = useRef();
+	const graphContainerRef = useRef();
+	const [graphDimensions, setGraphDimensions] = useState({
+		width: 0,
+		height: 0,
+	});
+
+	// Measure the graph container and keep dimensions in sync
+	useEffect(() => {
+		if (!graphContainerRef.current) return;
+
+		const observer = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				const { width, height } = entry.contentRect;
+				setGraphDimensions({ width, height });
+			}
+		});
+		observer.observe(graphContainerRef.current);
+		return () => observer.disconnect();
+	}, [isOpen]);
 
 	// Check if a paper is in saved papers
 	const isPaperSaved = (doi) => {
@@ -35,6 +54,7 @@ export default function PaperDetailsModal({
 
 		const fetchAndBuildGraph = async () => {
 			setLoadingGraph(true);
+			setNodeDetails(null); // Reset node details when switching papers
 			try {
 				const response = await api.get("/research-network/by-doi", {
 					params: { doi: selectedPaper.doi },
@@ -63,7 +83,8 @@ export default function PaperDetailsModal({
 					fx: 0,
 					fy: 0,
 					isMain: true,
-					val: 30,
+					// val: 30,
+					val: 10,
 				};
 				nodes.push(mainNode);
 				nodeMap.set(mainNode.id, mainNode);
@@ -76,6 +97,8 @@ export default function PaperDetailsModal({
 				limitedList.forEach((item, idx) => {
 					const nodeId = item.doi || item.paper_id;
 					if (nodeId && !nodeMap.has(nodeId)) {
+						const angle = (idx / limitedList.length) * 2 * Math.PI;
+						const radius = 200;
 						const node = {
 							id: nodeId,
 							label: item.title || "Unknown",
@@ -85,7 +108,9 @@ export default function PaperDetailsModal({
 							authors: item.authors,
 							year: item.year,
 							venue: item.venue,
-							val: 15,
+							x: Math.cos(angle) * radius,
+							y: Math.sin(angle) * radius,
+							val: 5,
 						};
 						nodes.push(node);
 						nodeMap.set(nodeId, node);
@@ -99,7 +124,18 @@ export default function PaperDetailsModal({
 				});
 
 				setGraphData({ nodes, links });
-				setNodeDetails(null);
+
+				// After a short delay, release all pinned nodes so they become draggable
+				// setTimeout(() => {
+				// 	if (forceGraphRef.current) {
+				// 		nodes.forEach((node) => {
+				// 			if (!node.isMain) {
+				// 				node.fx = undefined;
+				// 				node.fy = undefined;
+				// 			}
+				// 		});
+				// 	}
+				// }, 1000); // let simulation settle, then unpin
 			} catch (error) {
 				console.error("Error fetching paper data:", error);
 				setGraphData(null);
@@ -111,12 +147,21 @@ export default function PaperDetailsModal({
 		fetchAndBuildGraph();
 	}, [selectedPaper?.doi, viewMode, isOpen]);
 
+	// After graph data loads, zoom to fit so everything is visible
+	useEffect(() => {
+		if (!graphData || !forceGraphRef.current) return;
+		const timer = setTimeout(() => {
+			forceGraphRef.current.zoomToFit(400, 40);
+		}, 800); // wait for simulation to settle a bit
+		return () => clearTimeout(timer);
+	}, [graphData]);
+
 	// Handle node click
 	const handleNodeClick = async (node) => {
 		if (node.isMain) return; // Don't click on main paper node
 
 		try {
-			setLoadingGraph(true);
+			// setLoadingGraph(true);
 			const response = await api.get("/research-network/reference-details", {
 				params: { paper_id: node.paper_id },
 			});
@@ -149,7 +194,8 @@ export default function PaperDetailsModal({
 				year: nodeDetails.year,
 			});
 
-			// Update selected paper to include the new one
+			// Update the nodeDetails to mark it as saved locally
+			// This ensures the "Saved" indicator appears immediately
 			const newPaper = {
 				doi: nodeDetails.doi,
 				title: nodeDetails.title,
@@ -158,6 +204,11 @@ export default function PaperDetailsModal({
 				year: nodeDetails.year,
 				...nodeDetails,
 			};
+
+			// Update nodeDetails state to show it's now saved
+			setNodeDetails(newPaper);
+
+			// Also update the selected paper in case user navigates
 			onSelectPaper(newPaper);
 		} catch (error) {
 			console.error("Error saving paper:", error);
@@ -222,6 +273,8 @@ export default function PaperDetailsModal({
 							<div className="mx-auto h-full w-0.5 bg-muted-foreground/40 group-hover:bg-primary transition-colors" />
 						</Separator>
 
+						{/* <PanelResizeHandle className="w-1 bg-border hover:bg-primary transition-colors cursor-col-resize" /> */}
+
 						{/* Middle Panel: Graph View */}
 						<Panel defaultSize={45} minSize={15}>
 							<div className="h-full flex flex-col border-r">
@@ -243,7 +296,11 @@ export default function PaperDetailsModal({
 										Cited By
 									</Button>
 								</div>
-								<div className="flex-1 flex items-center justify-center text-muted-foreground overflow-hidden relative">
+								{/* <div className="flex-1 flex items-center justify-center text-muted-foreground overflow-hidden relative"> */}
+								<div
+									ref={graphContainerRef}
+									className="flex-1 flex items-center justify-center relative overflow-hidden"
+								>
 									{loadingGraph ? (
 										<p className="text-sm">Loading graph...</p>
 									) : graphData && graphData.nodes.length > 0 ? (
@@ -251,6 +308,9 @@ export default function PaperDetailsModal({
 											<ForceGraph2D
 												ref={forceGraphRef}
 												graphData={graphData}
+												// Explicit dimensions prevent the canvas from overflowing
+												width={graphDimensions.width}
+												height={graphDimensions.height}
 												nodeAutoColorBy="group"
 												nodeCanvasObject={(node, ctx) => {
 													const size = node.val || 10;
@@ -264,7 +324,7 @@ export default function PaperDetailsModal({
 
 													// Draw label
 													if (node.isMain) {
-														const fontSize = 14;
+														const fontSize = 5;
 														ctx.font = `bold ${fontSize}px Arial`;
 														ctx.fillStyle = "#ffffff";
 														ctx.textAlign = "center";
@@ -288,18 +348,24 @@ export default function PaperDetailsModal({
 												}}
 												linkWidth={2}
 												linkColor={() => "#8b5cf68a"}
+												// Strong repulsion + longer links so nodes spread out
 												d3AlphaDecay={0.02}
-												d3VelocityDecay={0.2}
+												d3VelocityDecay={0.3}
 												d3Force="charge"
-												d3ForceParameters={{
-													charge: {
-														strength: -400,
-														distanceMax: 1000,
-													},
-													// link: {
-													// 	distance: 100, // Explicitly set how long the "springs" should be
-													// },
-												}}
+												d3ForceStrength={-400}
+												dagLevelDistance={120}
+												// d3AlphaDecay={0.02}
+												// d3VelocityDecay={0.3}
+												// d3Force="charge"
+												// d3ForceParameters={{
+												// 	charge: {
+												// 		strength: -150,
+												// 		distanceMax: 2000,
+												// 	},
+												// 	link: {
+												// 		distance: 120,
+												// 	},
+												// }}
 											/>
 
 											{/* Hover Tooltip */}
@@ -347,6 +413,7 @@ export default function PaperDetailsModal({
 								</div>
 							</div>
 						</Panel>
+						{/* <PanelResizeHandle className="w-1 bg-border hover:bg-primary transition-colors cursor-col-resize" /> */}
 
 						<Separator className="group w-1 cursor-col-resize bg-border">
 							<div className="mx-auto h-full w-0.5 bg-muted-foreground/40 group-hover:bg-primary transition-colors" />

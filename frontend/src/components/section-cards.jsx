@@ -53,7 +53,7 @@ const PaperModal = ({ paper, isOpen, onClose }) => {
 		<Dialog open={isOpen} onOpenChange={onClose}>
 			<DialogContent
 				showCloseButton={false}
-				className="w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl max-h-[90vh] overflow-y-auto via-card bg-background"
+				className="w-[95vw] sm:max-w-2xl md:max-w-2xl lg:max-w-2xl xl:max-w-2xl max-h-[90vh] overflow-y-auto via-card bg-background"
 			>
 				<div className="space-y-6 py-4">
 					<DialogHeader className="space-y-4">
@@ -62,9 +62,9 @@ const PaperModal = ({ paper, isOpen, onClose }) => {
 								<DialogTitle className="text-2xl font-bold text-foreground">
 									{paper.title}
 								</DialogTitle>
-								<Badge className="mt-3 bg-primary/10 text-primary border-primary/20 text-sm">
+								{/* <Badge className="mt-3 bg-primary/10 text-primary border-primary/20 text-sm">
 									{paper.year}
-								</Badge>
+								</Badge> */}
 							</div>
 							<DialogClose asChild>
 								<Button
@@ -197,13 +197,13 @@ export function Projects() {
 							<CardTitle className="text-base font-bold leading-tight line-clamp-2 text-foreground">
 								{paper.title}
 							</CardTitle>
-							<div className="flex items-center gap-2 mt-2">
+							{/* <div className="flex items-center gap-2 mt-2">
 								<span
 									className={`px-2 py-1 text-xs font-semibold rounded-md ${paper.color}`}
 								>
 									{paper.year}
 								</span>
-							</div>
+							</div> */}
 						</CardHeader>
 						<CardContent className="pb-4">
 							<p className="text-sm text-muted-foreground line-clamp-4 mb-3">
