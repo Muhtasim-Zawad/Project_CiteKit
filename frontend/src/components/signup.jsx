@@ -6,24 +6,43 @@ import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 
-export default function LoginPage() {
+export default function SignupPage() {
 	const navigate = useNavigate();
-	const { login } = useAuth();
+	const { signup } = useAuth();
+	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [confirmPassword, setConfirmPassword] = useState("");
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setError("");
+
+		// Validation
+		if (!name.trim()) {
+			setError("Name is required");
+			return;
+		}
+		if (password !== confirmPassword) {
+			setError("Passwords do not match");
+			return;
+		}
+		if (password.length < 6) {
+			setError("Password must be at least 6 characters");
+			return;
+		}
+
 		setLoading(true);
 
 		try {
-			await login(email, password);
+			await signup(email, password, name);
 			navigate("/dashboard");
 		} catch (err) {
-			setError(err.response?.data?.detail || "Login failed. Please try again.");
+			setError(
+				err.response?.data?.detail || "Signup failed. Please try again.",
+			);
 		} finally {
 			setLoading(false);
 		}
@@ -41,9 +60,9 @@ export default function LoginPage() {
 							<IconInnerShadowTop />
 						</a>
 						<h1 className="mb-1 mt-4 text-xl font-semibold">
-							Sign In to CiteKit
+							Create CiteKit Account
 						</h1>
-						<p className="text-sm">Welcome back! Sign in to continue</p>
+						<p className="text-sm">Join us to get started</p>
 					</div>
 
 					{error && (
@@ -52,7 +71,23 @@ export default function LoginPage() {
 						</div>
 					)}
 
-					<div className="mt-6 space-y-6 ">
+					<div className="mt-6 space-y-4">
+						<div className="space-y-2">
+							<Label htmlFor="name" className="block text-sm">
+								Full Name
+							</Label>
+							<Input
+								type="text"
+								required
+								name="name"
+								id="name"
+								value={name}
+								onChange={(e) => setName(e.target.value)}
+								className="shadow-sm"
+								placeholder="John Doe"
+							/>
+						</div>
+
 						<div className="space-y-2">
 							<Label htmlFor="email" className="block text-sm">
 								Email
@@ -65,23 +100,14 @@ export default function LoginPage() {
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
 								className="shadow-sm"
+								placeholder="your@email.com"
 							/>
 						</div>
 
-						<div className="space-y-0.5">
-							<div className="flex items-center justify-between">
-								<Label htmlFor="pwd" className="text-sm">
-									Password
-								</Label>
-								<Button asChild variant="link" size="sm">
-									<a
-										href="#"
-										className="link intent-info variant-ghost text-sm"
-									>
-										Forgot your Password ?
-									</a>
-								</Button>
-							</div>
+						<div className="space-y-2">
+							<Label htmlFor="pwd" className="text-sm">
+								Password
+							</Label>
 							<Input
 								type="password"
 								required
@@ -90,19 +116,37 @@ export default function LoginPage() {
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 								className="input sz-md variant-mixed shadow-sm"
+								placeholder="At least 6 characters"
 							/>
 						</div>
-						<Button type="submit" className="w-full" disabled={loading}>
-							{loading ? "Signing In..." : "Sign In"}
+
+						<div className="space-y-2">
+							<Label htmlFor="confirm-pwd" className="text-sm">
+								Confirm Password
+							</Label>
+							<Input
+								type="password"
+								required
+								name="confirm-pwd"
+								id="confirm-pwd"
+								value={confirmPassword}
+								onChange={(e) => setConfirmPassword(e.target.value)}
+								className="input sz-md variant-mixed shadow-sm"
+								placeholder="Confirm password"
+							/>
+						</div>
+
+						<Button type="submit" className="w-full mt-6" disabled={loading}>
+							{loading ? "Creating Account..." : "Create Account"}
 						</Button>
 					</div>
 				</div>
 
 				<div className="p-3">
 					<p className="text-accent-foreground text-center text-sm">
-						Don't have an account ?
+						Already have an account ?
 						<Button asChild variant="link" className="px-2">
-							<RouterLink to="/auth/signup">Create account</RouterLink>
+							<RouterLink to="/auth/login">Sign in</RouterLink>
 						</Button>
 					</p>
 				</div>

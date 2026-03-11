@@ -1,3 +1,4 @@
+import { useParams } from "react-router-dom";
 import { AppSidebar } from "@/components/app-sidebar";
 // import { DataTable } from "@/components/data-table";
 // import { Projects } from "@/components/section-cards";
@@ -11,6 +12,8 @@ import SavedPapersPanel from "@/components/saved-papers-panel";
 import { Group, Panel, Separator } from "react-resizable-panels";
 
 export default function Workstation() {
+	const { projectId } = useParams();
+
 	return (
 		<SidebarProvider
 			style={{
@@ -37,7 +40,7 @@ export default function Workstation() {
 
 						<Panel defaultSize={30} minSize={20}>
 							<div className="h-full min-h-0">
-								<SavedPapersPanel />
+								<SavedPapersPanel projectId={projectId} />
 							</div>
 						</Panel>
 					</Group>

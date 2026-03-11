@@ -24,20 +24,51 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 
-export function NavDocuments({ items, title = "Recent Projects" }) {
+export function NavDocuments({
+	items,
+	title = "Recent Projects",
+	isScrollable = false,
+	isLoading = false,
+	onItemClick = null,
+}) {
 	const { isMobile } = useSidebar();
 
+	if (isLoading) {
+		return (
+			<SidebarGroup className="group-data-[collapsible=icon]:hidden">
+				<SidebarGroupLabel>{title}</SidebarGroupLabel>
+				<div className="px-2 py-2 text-sm text-muted-foreground">
+					Loading...
+				</div>
+			</SidebarGroup>
+		);
+	}
+
+	if (items.length === 0) {
+		return (
+			<SidebarGroup className="group-data-[collapsible=icon]:hidden">
+				<SidebarGroupLabel>{title}</SidebarGroupLabel>
+				<div className="px-2 py-2 text-sm text-muted-foreground">No items</div>
+			</SidebarGroup>
+		);
+	}
+
 	return (
-		<SidebarGroup className="group-data-[collapsible=icon]:hidden">
+		<SidebarGroup
+			className={`group-data-[collapsible=icon]:hidden ${isScrollable ? "flex-shrink max-h-64 overflow-y-auto" : ""}`}
+		>
 			<SidebarGroupLabel>{title}</SidebarGroupLabel>
 			<SidebarMenu>
 				{items.map((item) => (
 					<SidebarMenuItem key={item.name}>
 						<SidebarMenuButton asChild>
-							<a href={item.url}>
+							<button
+								onClick={() => onItemClick?.(item)}
+								className="w-full flex items-center gap-2 px-2 py-1.5 text-left"
+							>
 								<item.icon />
 								<span>{item.name}</span>
-							</a>
+							</button>
 						</SidebarMenuButton>
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
@@ -54,15 +85,6 @@ export function NavDocuments({ items, title = "Recent Projects" }) {
 								side={isMobile ? "bottom" : "right"}
 								align={isMobile ? "end" : "start"}
 							>
-								<DropdownMenuItem>
-									<IconFolder />
-									<span>Open</span>
-								</DropdownMenuItem>
-								<DropdownMenuItem>
-									<IconShare3 />
-									<span>Share</span>
-								</DropdownMenuItem>
-								<DropdownMenuSeparator />
 								<DropdownMenuItem variant="destructive">
 									<IconTrash />
 									<span>Delete</span>

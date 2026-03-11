@@ -190,15 +190,29 @@ async def get_thread_chats(
     """
     Get all chats for a thread with full results, ordered by created_at ascending.
     """
-    # Verify thread ownership via project join
-    thread = supabase.table("thread").select("thread_id, projects!inner(user_id)") \
+    # Verify thread exists and belongs to user
+    thread_resp = supabase.table("thread").select("thread_id, project_id") \
         .eq("thread_id", thread_id) \
         .execute()
 
-    if not thread.data or thread.data[0]["projects"]["user_id"] != current_user["id"]:
+    if not thread_resp.data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Thread not found or not owned by user"
+            detail="Thread not found"
+        )
+
+    project_id = thread_resp.data[0]["project_id"]
+
+    # Verify project belongs to user
+    project = supabase.table("projects").select("project_id") \
+        .eq("project_id", project_id) \
+        .eq("user_id", current_user["id"]) \
+        .execute()
+
+    if not project.data:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Project not owned by user"
         )
 
     # Fetch all chats for the thread ordered by created_at
@@ -272,15 +286,29 @@ async def get_chat_detail(
     """
     Get a single chat with full results (papers, metrics, etc.).
     """
-    # Verify thread ownership via project join
-    thread = supabase.table("thread").select("thread_id, projects!inner(user_id)") \
+    # Verify thread exists and belongs to user
+    thread_resp = supabase.table("thread").select("thread_id, project_id") \
         .eq("thread_id", thread_id) \
         .execute()
 
-    if not thread.data or thread.data[0]["projects"]["user_id"] != current_user["id"]:
+    if not thread_resp.data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Thread not found or not owned by user"
+            detail="Thread not found"
+        )
+
+    project_id = thread_resp.data[0]["project_id"]
+
+    # Verify project belongs to user
+    project = supabase.table("projects").select("project_id") \
+        .eq("project_id", project_id) \
+        .eq("user_id", current_user["id"]) \
+        .execute()
+
+    if not project.data:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Project not owned by user"
         )
 
     # Fetch the chat
