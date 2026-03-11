@@ -147,6 +147,7 @@ export default function SavedPapersPanel({ projectId }) {
 				selectedPaper={selectedPaper}
 				allPapers={savedPapers}
 				onSelectPaper={(paper) => setSelectedPaper(paper)}
+				projectId={projectId}
 			/>
 		</>
 	);
