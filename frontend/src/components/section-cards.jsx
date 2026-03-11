@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,8 +47,34 @@ const MOCK_PAPERS = [
 ];
 
 // Paper Modal Component
-const PaperModal = ({ paper, isOpen, onClose }) => {
+const PaperModal = ({ paper, isOpen, onClose, onDelete }) => {
+	const navigate = useNavigate();
+	const [isDeleting, setIsDeleting] = useState(false);
+	const [deleteError, setDeleteError] = useState(null);
+
 	if (!paper) return null;
+
+	const handleDelete = async () => {
+		setDeleteError(null);
+		setIsDeleting(true);
+
+		try {
+			await api.delete(`/projects/${paper.id}`);
+			onClose();
+			onDelete?.();
+		} catch (error) {
+			setDeleteError(
+				error.response?.data?.detail || "Failed to delete project",
+			);
+		} finally {
+			setIsDeleting(false);
+		}
+	};
+
+	const handleOpenInChat = () => {
+		onClose();
+		navigate(`/workspace/${paper.id}`);
+	};
 
 	return (
 		<Dialog open={isOpen} onOpenChange={onClose}>
@@ -126,12 +153,29 @@ const PaperModal = ({ paper, isOpen, onClose }) => {
 						</div>
 					</div> */}
 
+					{/* Error Message */}
+					{deleteError && (
+						<div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+							{deleteError}
+						</div>
+					)}
+
 					{/* Action Buttons */}
 					<div className="flex gap-3 pt-4 border-t border-primary/10">
-						<Button className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
-							<BookOpen className="h-4 w-4 mr-2" /> Edit
+						<Button
+							variant="destructive"
+							className="flex-1"
+							onClick={handleDelete}
+							disabled={isDeleting}
+						>
+							{isDeleting ? "Deleting..." : "Delete"}
 						</Button>
-						<Button variant="secondary" className="flex-1">
+						<Button
+							variant="default"
+							className="flex-1"
+							onClick={handleOpenInChat}
+							disabled={isDeleting}
+						>
 							Open in Chat
 						</Button>
 					</div>
@@ -171,6 +215,12 @@ export function Projects() {
 		} finally {
 			setLoading(false);
 		}
+	};
+
+	const handleDelete = () => {
+		setIsModalOpen(false);
+		setSelectedPaper(null);
+		fetchProjects();
 	};
 
 	if (loading) {
@@ -230,6 +280,7 @@ export function Projects() {
 				paper={selectedPaper}
 				isOpen={isModalOpen}
 				onClose={() => setIsModalOpen(false)}
+				onDelete={handleDelete}
 			/>
 		</>
 	);
